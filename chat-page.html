@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chat with Date and Timestamp</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <script type="text/javascript" src="js/Bmob-1.7.1.min.js"></script>
+  <style>
+    body {
+      background-color: #ffffff; /* White background */
+      font-family: 'Roboto', sans-serif;
+      color: #333333; /* Dark grey text for contrast */
+    }
+
+    .chat-card {
+      margin-top: 50px;
+      border: none;
+      border-radius: 15px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      background-color: #f5f5f5; /* Light grey chat card */
+    }
+
+    .card-header {
+      background-color: #333333; /* Dark Grey Header */
+      color: #ffffff; /* White Text */
+      font-size: 1.4rem;
+      font-weight: bold;
+      text-align: center;
+      border-top-left-radius: 15px;
+      border-top-right-radius: 15px;
+      padding: 15px;
+    }
+
+    .chat-window {
+      height: 400px;
+      overflow-y: auto;
+      background-color: #fafafa; /* Very light grey for chat window */
+      padding: 15px;
+      margin-bottom: 10px;
+    }
+
+    .chat-message {
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .chat-message.me {
+      align-items: flex-end;
+    }
+
+    .chat-message.them {
+      align-items: flex-start;
+    }
+
+    .chat-message .sender {
+      font-weight: bold;
+      font-size: 1rem;
+      color: #777777; /* Medium grey for sender's name */
+      margin-bottom: 5px;
+    }
+
+    .chat-message .message-bubble {
+      background-color: #333333; /* Dark grey bubble for user */
+      color: #ffffff;
+      padding: 12px 18px;
+      border-radius: 20px;
+      max-width: 70%;
+      text-align: left;
+    }
+
+    .chat-message.them .message-bubble {
+      background-color: #e1e1e1; /* Light grey bubble for others */
+      color: #333333;
+      border: 1px solid #cccccc; /* Light grey border for others */
+    }
+
+    .chat-message .timestamp {
+      font-size: 0.8rem;
+      color: #999999; /* Light grey timestamp */
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .chat-message .date {
+      font-size: 0.9rem;
+      color: #888888; /* Lighter grey for date */
+      margin-top: 5px;
+      text-align: right;
+    }
+
+    .chat-footer {
+      display: flex;
+      gap: 10px;
+      padding-top: 10px;
+    }
+
+    .chat-footer input {
+      border-radius: 30px;
+      padding: 12px 20px;
+      border: 1px solid #cccccc; /* Light grey border */
+      font-size: 1rem;
+      background-color: #ffffff; /* White input background */
+      color: #333333; /* Dark grey text */
+    }
+
+    .chat-footer button {
+      border-radius: 30px;
+      padding: 12px 20px;
+      font-size: 1.1rem;
+      background-color: #333333; /* Dark grey button */
+      color: #ffffff;
+      border: none;
+      transition: background-color 0.3s ease;
+    }
+
+    .chat-footer button:hover {
+      background-color: #444444; /* Slightly lighter grey on hover */
+    }
+
+    .profile-img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+    }
+
+    .chat-header .name {
+      font-weight: bold;
+      color: #ffffff;
+      font-size: 1.2rem;
+    }
+
+    .chat-header .status {
+      font-size: 0.9rem;
+      color: #b0b0b0; /* Light grey status text */
+    }
+
+    .chat-message.me .message-bubble {
+      background-color: #333333; /* Dark grey for logged-in user */
+      color: #ffffff;
+    }
+
+    .card-header i {
+      color: #ffffff; /* Icon color */
+      transition: color 0.3s ease;
+    }
+
+    .card-header i:hover {
+      color: #cccccc; /* Slightly lighter on hover */
+    }
+
+        /* Modal Background */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent dark background */
+    }
+
+    /* Modal Content */
+    .modal-content {
+      background-color: #ffffff;
+      margin: 15% auto; /* Center vertically */
+      padding: 20px;
+      border-radius: 15px;
+      width: 80%; /* Full-width on smaller screens */
+      max-width: 320px; /* Small size for desktop */
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+      animation: slideDown 0.3s ease; /* Smooth entry animation */
+    }
+
+    /* Slide Down Animation */
+    @keyframes slideDown {
+      from {
+        transform: translateY(-20px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    /* Close Button */
+    .modal-content .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      color: #333333;
+      font-size: 1.5rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .modal-content .close:hover {
+      color: #ff0000;
+    }
+
+    /* Modal Title */
+    .modal-title {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #333333;
+      margin-bottom: 15px;
+    }
+
+    /* Group List */
+    .group-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      max-height: 200px; /* Limit height */
+      overflow-y: auto; /* Scroll if necessary */
+    }
+
+    .group-list li {
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+      color: #555555;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .group-list li:hover {
+      background-color: #f1f1f1;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
+      transform: translateY(-2px); /* Slight elevation effect */
+    }
+
+    .fade-out {
+      animation: fadeOut 0.8s ease-in-out forwards;
+    }
+
+    @keyframes fadeOut {
+      0% {
+        opacity: 1;
+      }
+      50% {
+        opacity: 0.5;
+        background-color: #f0f0f0; /* Soft neutral color during fade */
+      }
+      100% {
+        opacity: 0;
+        background-color: #ffffff;
+      }
+    }
+
+
+    .fas.fa-times-circle:hover {
+      color: #ff1a1a; /* Darker red on hover */
+      transform: scale(1.2); /* Slight zoom on hover */
+      transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+
+  </style>
+</head>
+
+
+
+
+<body>
+  <!-- Modal -->
+  <div id="groupModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h4 class="modal-title">My Groups</h4>
+      <ul class="group-list" id="groupList"></ul>
+    </div>
+  </div>
+
+<!-- Room Members Modal -->
+<!-- Room Members Modal -->
+  <div id="roomMembersModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeRoomMembersModal()">&times;</span>
+      <h4 class="modal-title">Room Members</h4>
+      <ul class="group-list" id="roomMembersList"></ul>
+    </div>
+  </div>
+
+
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card chat-card">
+
+            <div class="card-header d-flex align-items-center" style="position: relative;">
+
+              <i class="fa-solid fa-chevron-left" 
+             style="cursor: pointer; font-size: 1.5rem; margin-right: 10px;" 
+             onclick="goToHomePage()" 
+             title="Back to Home"></i>
+              <div class="d-flex align-items-center">
+                <img src="images/chatLogo.jpg" alt="Profile" class="profile-img"> <!-- Profile image -->
+                <div class="name" id="groupName">Group Chat</div>
+              </div>
+              <div id="roomHostIcon" style="display: none;">
+                <i class="fas fa-user-friends" 
+                   style="cursor: pointer; font-size: 1.5rem; position: absolute; right: 50px; top: 50%; transform: translateY(-50%);"
+                   onclick="showRoomMembers()"
+                   title="Show Room Members"></i>
+              </div>
+
+              <i class="fas fa-solid fa-layer-group"
+                 style="cursor: pointer; font-size: 1.5rem; position: absolute; right: 15px; top: 50%; transform: translateY(-50%);" 
+                 onclick="showGroups()" 
+                 title="Other Groups"></i>
+            </div>
+
+          <div class="card-body">
+            <!-- Chat Window -->
+            <div class="chat-window" id="chatWindow">
+              <!-- Chat messages will appear here -->
+            </div>
+            <!-- Input Section -->
+            <div class="chat-footer">
+              <input type="text" id="messageInput" class="form-control" placeholder="Type a message...">
+              <button class="btn" id="sendMessage" onclick="sending()">Send</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+<script type="text/javascript">
+  // document.addEventListener('DOMContentLoaded', function () {
+  //   console.log("Page loaded, fetching chat messages...");
+  // });
+
+  document.addEventListener("DOMContentLoaded", function () {
+    refreshChatWindow(); // Load the initial chat messages
+  });
+
+  var memberIds = [];
+
+  Bmob.initialize("5fae1458dd7d8bd4b498fe557bda8a01", "9e76c5623c742c04fe0481b025d1546f");
+
+  const params = new URLSearchParams(window.location.search);
+  const userId = params.get("userId");
+  const username = params.get("username");
+  const groupName = params.get("groupName");
+  const groupId = params.get("groupId");
+
+  fetchUserPhoto()
+
+  document.getElementById("groupName").textContent = groupName;
+
+  console.log("Retrieved userId:", userId);
+  console.log("Retrieved username:", username);
+
+
+  var sending = function () {
+    const messageInput = document.getElementById("messageInput").value.trim();
+    if (messageInput === "") return; // Prevent empty messages
+
+    const query = Bmob.Query("chatMessage");
+    query.set("name", username);
+    query.set("fromUserId", userId); // Current user's username
+    query.set("message", messageInput);
+    query.set("groupId", groupId); // Message content
+    query.save().then((res) => {
+      console.log("Message sent:", res);
+      document.getElementById("messageInput").value = ""; // Clear input field
+      refreshChatWindow(); // Refresh the chat without reloading the page
+    }).catch((err) => {
+      console.error("Error sending message:", err);
+    });
+  };
+
+    document.getElementById("messageInput").addEventListener("keydown", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      sending();
+    }
+  });
+
+
+  function goToHomePage() {
+    window.location.href = `home-page.html?userId=${userId}&username=${username}`; // Change "index.html" to your homepage URL
+  }
+
+
+  var view = function () {
+    const query = Bmob.Query("chatMessage");
+    query.equalTo("groupId", "==", groupId);
+
+    query.find().then(res => {
+      console.log(res);
+      displayMessages(res); // Display fetched messages
+    }).catch(err => {
+      console.error(err);
+    });
+  };
+
+  function refreshChatWindow() {
+    const query = Bmob.Query("chatMessage");
+    query.equalTo("groupId", "==", groupId);
+
+    query.find().then((res) => {
+
+      var lastMessage = res[res.length - 1];
+      displayMessages(res); 
+      const q = Bmob.Query("groupCheckTime");
+
+      q.equalTo("userId", "==", userId);
+
+      q.find().then(checkTimes => {
+
+        if (checkTimes.length > 0){
+          const qupdate = Bmob.Query('groupCheckTime');
+          qupdate.get(checkTimes[0].objectId).then(res => {
+            console.log(res)
+            res.set("lastMessageId", lastMessage.objectId)
+            res.set("groupId", groupId);
+            res.set("userId", userId);
+            res.save()
+          }).catch(err => {
+            console.log(err)
+          })
+        }else{
+          const qcreate = Bmob.Query('groupCheckTime');
+          res.set("lastMessageId", lastMessage.objectId)
+          qcreate.set("groupId", groupId);
+          qcreate.set("userId", userId);
+
+          qcreate.save()
+        }
+        
+
+      }).catch(err => {
+        console.log(err)
+      }) 
+    }).catch((err) => {
+      console.error("Error refreshing chat:", err);
+    });
+  }
+
+  // Call `refreshChatWindow` every few seconds to update the chat
+  setInterval(refreshChatWindow, 3000); // Refresh every 3 seconds
+
+
+  // function displayMessages(messages) {
+  //   const chatWindow = document.getElementById("chatWindow");
+  //   const currentMessagesCount = chatWindow.children.length;
+
+  //   chatWindow.innerHTML = ""; // Clear existing messages
+
+  //   messages.forEach((message) => {
+  //     const messageDiv = document.createElement("div");
+  //     messageDiv.className = `chat-message ${
+  //       message.name === username ? "me" : "them"
+  //     }`;
+
+  //     // Add sender's name
+  //     const senderSpan = document.createElement("span");
+  //     senderSpan.className = "sender";
+  //     senderSpan.textContent = message.name;
+
+  //     // Add message bubble
+  //     const bubbleDiv = document.createElement("div");
+  //     bubbleDiv.className = "message-bubble";
+  //     bubbleDiv.textContent = message.message;
+
+  //     // Add timestamp
+  //     const timestampSpan = document.createElement("span");
+  //     timestampSpan.className = "timestamp";
+  //     if (message.createdAt) {
+  //       const date = new Date(message.createdAt);
+  //       timestampSpan.textContent = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+  //     }
+
+  //     messageDiv.appendChild(senderSpan);
+  //     messageDiv.appendChild(bubbleDiv);
+  //     if (message.createdAt) messageDiv.appendChild(timestampSpan);
+
+  //     chatWindow.appendChild(messageDiv);
+  //   });
+
+  //   // Scroll to bottom only if new messages are added
+  //   if (messages.length > currentMessagesCount) {
+  //     chatWindow.scrollTop = chatWindow.scrollHeight;
+  //   }
+  // }
+
+  // // Fetch chat list on page load
+  // document.addEventListener('DOMContentLoaded', function () {
+  //   console.log("Page loaded, fetching chat messages...");
+  //   view(); // Fetch and display chat messages
+  // });
+
+
+  // Show group list in a modal
+  function showGroups() {
+    const modal = document.getElementById('groupModal');
+    modal.style.display = 'block';
+
+
+    const query = Bmob.Query("chatRoom");
+    query.containedIn("RoomMember", [userId]);
+    query.find().then((groups) => {
+      const groupList = document.getElementById("groupList");
+      groupList.innerHTML = "";
+      console.log(groups);
+
+      groups.forEach((group) => {
+        const listItem = document.createElement("li");
+        listItem.textContent = group.RoomName;
+        listItem.onclick = () => switchGroup(group.objectId, group.RoomName);
+        groupList.appendChild(listItem);
+      });
+
+    })
+  }
+
+  function closeModal() {
+    const modal = document.getElementById('groupModal');
+    modal.style.display = 'none';
+  }
+
+  // Close the modal when clicking outside of it
+  window.onclick = function(event) {
+    const modal = document.getElementById('groupModal');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  };
+
+
+  function switchGroup(groupId, roomName) {
+    const url = new URL(window.location.href);
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("userId");
+    const username = params.get("username");
+
+    // Clear existing search parameters
+    url.search = '';
+
+    // Construct the new URL with updated query parameters
+    const newUrl = 
+      url.toString() +
+      '?groupId=' + groupId +
+      '&groupName=' + encodeURIComponent(roomName) +
+      '&userId=' + userId +
+      '&username=' + username;
+
+    document.getElementById("chatWindow")
+    chatWindow.innerHTML = ""; // Clear existing messages
+    // Add the fade-out class for transition
+    document.body.classList.add('fade-out');
+
+
+
+    // Redirect after the animation ends
+    setTimeout(() => {
+      window.location.href = newUrl;
+    }, 800); // Match the duration of the fade-out animation
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    checkRoomHost();
+  });
+
+  function checkRoomHost() {
+    const query = Bmob.Query("chatRoom");
+    query.get(groupId).then((room) => {
+      if (room.RoomHost === userId) { // Check if current user is the host
+        document.getElementById("roomHostIcon").style.display = "block"; // Show the icon
+      }
+    }).catch((err) => {
+      console.error("Error checking room host:", err);
+    });
+  }
+
+
+  function showRoomMembers() {
+    const modal = document.getElementById('roomMembersModal');
+    modal.style.display = 'block';
+
+    const query = Bmob.Query("chatRoom");
+    query.get(groupId).then((room) => {
+      memberIds = room.RoomMember || []; // Array of member IDs
+      fetchMembers(memberIds);
+
+    }).catch((err) => {
+      console.error("Error fetching room members:", err);
+    });
+  }
+
+  function fetchMembers(memberIds) {
+    const userQuery = Bmob.Query("_User"); // Query the User table
+    userQuery.containedIn("objectId", memberIds);
+    userQuery.order("username"); // Order by username
+    userQuery.find().then((members) => {
+      this.roomMembers = members;
+      console.log(this.roomMembers);
+      displayRoomMembers(members);
+    }).catch((err) => {
+      console.error("Error fetching user data:", err);
+    });
+  }
+
+  function displayMessages(messages, groupId) {
+    const query = Bmob.Query("chatMessage");
+    query.equalTo("groupId", "==", groupId);
+
+    query.find().then((res) => {
+
+      var lastMessage = res[res.length - 1];
+      displayMessages(res); 
+      const q = Bmob.Query("groupCheckTime");
+
+      q.equalTo("userId", "==", userId);
+      q.equalTo("groupId", "==", groupId);
+
+      q.find().then(checkTimes => {
+        const qupdate = Bmob.Query('groupCheckTime');
+        qupdate.get(checkTimes[0].objectId).then(res => {
+          console.log(res)
+          res.set("lastMessageId", lastMessage.objectId)
+          res.save()
+        }).catch(err => {
+          console.log(err)
+        })
+
+      })
+    })
+
+
+    const chatWindow = document.getElementById("chatWindow");
+
+    const currentMessagesCount = chatWindow.children.length;
+
+    chatWindow.innerHTML = ""; // Clear existing messages
+
+    messages.forEach((message) => {
+      const messageDiv = document.createElement("div");
+      messageDiv.className = `chat-message ${
+        message.name === username ? "me" : "them"
+      }`;
+
+      // Create a container for the profile photo and messag
+
+      // Add sender's name
+      const senderSpan = document.createElement("span");
+      senderSpan.className = "sender";
+      senderSpan.textContent = message.name;
+
+      // Add message bubble
+      const bubbleDiv = document.createElement("div");
+      bubbleDiv.className = "message-bubble";
+      bubbleDiv.textContent = message.message;
+
+      // Add timestamp
+      const timestampSpan = document.createElement("span");
+      timestampSpan.className = "timestamp";
+      if (message.createdAt) {
+        const date = new Date(message.createdAt);
+        timestampSpan.textContent = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
+      }
+
+      const containerDiv = document.createElement("div");
+      containerDiv.style.display = "flex";
+      containerDiv.style.alignItems = "center";
+      containerDiv.style.marginBottom = "10px";
+
+      
+      if (message.createdAt) messageDiv.appendChild(timestampSpan); // Add timestamp
+
+      chatWindow.appendChild(messageDiv);
+
+      // Add profile photo
+      const profileImg = document.createElement("img");
+      profileImg.alt = `${message.name}'s profile photo`;
+      profileImg.className = "profile-img";
+      profileImg.style.width = "40px";
+      profileImg.style.height = "40px";
+      profileImg.style.borderRadius = "50%";
+      profileImg.style.marginRight = "10px";
+
+
+      // Append elements
+      containerDiv.appendChild(profileImg); // Add profile image
+      containerDiv.appendChild(senderSpan); // Add sender's name
+      messageDiv.appendChild(containerDiv);
+      messageDiv.appendChild(bubbleDiv); // Add message bubble
+
+      if (profiles.length > 0){
+          profiles.forEach( profile => {
+              if (profile.userId == message.fromUserId) {
+                profileImg.src = "./profile_images/" + profile.photoName;   
+              }  
+          }) 
+      }else {
+          profileImg.src = "./profile_images/0.jpg" ;   
+      }
+       
+    });
+
+    // Scroll to bottom only if new messages are added
+    if (messages.length > currentMessagesCount) {
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    } 
+
+  }
+
+  var profiles = [];
+  
+  function fetchUserPhoto(){
+
+    const query = Bmob.Query("chatRoom");
+    query.get(groupId).then((room) => {
+      
+      memberIds = room.RoomMember || []; // Array of member IDs
+
+      let qp = Bmob.Query("userProfile");
+
+      qp.containedIn("userId", memberIds);
+
+      qp.find().then( ups => {
+        console.log(ups);
+        this.profiles = ups;
+
+      }).catch((error) => {
+        console.error('Error fetching chat groups:', error);
+      });
+
+    }).catch((err) => {
+      console.error("Error fetching room members:", err);
+    });
+  }
+
+
+  function displayRoomMembers(members) {
+    const membersList = document.getElementById("roomMembersList");
+    membersList.innerHTML = ""; // Clear existing members
+
+    members.forEach((member) => {
+      const listItem = document.createElement("li");
+      listItem.style.display = "flex";
+      listItem.style.justifyContent = "space-between";
+      listItem.style.alignItems = "center";
+      listItem.style.padding = "5px 10px";
+      listItem.style.border = "1px solid #e0e0e0";
+      listItem.style.borderRadius = "10px";
+      listItem.style.marginBottom = "5px";
+      listItem.style.backgroundColor = "#f9f9f9";
+
+      // Member name
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = member.username;
+      nameSpan.style.flexGrow = "1";
+      nameSpan.style.fontSize = "1rem";
+      nameSpan.style.color = "#333";
+
+      // Remove icon
+      const removeIcon = document.createElement("i");
+      removeIcon.className = "fas fa-times-circle";
+      removeIcon.style.cursor = "pointer";
+      removeIcon.style.color = "#ff4d4d";
+      removeIcon.style.fontSize = "1.2rem";
+      removeIcon.style.marginLeft = "10px";
+      removeIcon.title = `Remove ${member.username}`;
+      removeIcon.onclick = () => removeMember(member.objectId);
+
+      listItem.appendChild(nameSpan);
+      listItem.appendChild(removeIcon);
+      membersList.appendChild(listItem);
+    });
+  }
+
+
+  function removeMember(memberId) {
+    if (!confirm("Are you sure you want to remove this member?")) return;
+
+    const query = Bmob.Query("chatRoom");
+    query.get(groupId).then((room) => {
+      const updatedMembers = room.RoomMember.filter((id) => id !== memberId); // Remove the member
+      room.set("RoomMember", updatedMembers);
+      return room.save(); // Save updated member list
+    }).then(() => {
+      alert("Member removed successfully.");
+      showRoomMembers(); // Refresh the list
+    }).catch((err) => {
+      console.error("Error removing member:", err);
+    });
+  }
+
+  function closeRoomMembersModal() {
+    const modal = document.getElementById('roomMembersModal');
+    modal.style.display = 'none';
+  }
+
+  // Close the modal when clicking outside of it
+  window.onclick = function(event) {
+    const modal = document.getElementById('roomMembersModal');
+    if (event.target === modal) {
+      closeRoomMembersModal();
+    }
+  };
+
+
+
+</script>
+</html> 
