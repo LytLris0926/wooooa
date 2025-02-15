@@ -10,7 +10,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <!-- Bootstrap Icons -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
-  <script type="text/javascript" src="js/Bmob-1.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
 
   <style>
     body {
@@ -360,205 +360,138 @@
     // Assume that the Bmob query is already correctly set up
 
 // Fetch the data from Bmob
-    Bmob.initialize("5fae1458dd7d8bd4b498fe557bda8a01", "9e76c5623c742c04fe0481b025d1546f");
+    // Initialize LeanCloud SDK
+    // Initialize LeanCloud
+    AV.init({
+      appId: "ukCMrVVZEvwIIm0s3VhiFEOP-gzGzoHsz",
+      appKey: "HGRJgdvbtUmxQRiJcMI6YgGD",
+      serverURL: "https://ukcmrvvz.lc-cn-n1-shared.com"
+    });
 
     const userId = getQueryParam('userId');
     const username = getQueryParam('username');
 
-    let qp = Bmob.Query("userProfile");
+    document.getElementById('userId').innerHTML = "id: " + userId;
+    document.getElementById('userName').innerHTML = username;
 
-    qp.equalTo("userId", "==", userId);
-
-    qp.find().then( up => {
-      console.log(up);
-      document.getElementById('userPhoto').src = "./profile_images/" + up[0].photoName;
-    }).catch((error) => {
-      console.error('Error fetching chat groups:', error);
+    // Fetch user profile
+    targetQuery = new AV.Query("userProfile");
+    targetQuery.equalTo("userId", userId);
+    targetQuery.first().then(up => {
+      if (up) {
+        document.getElementById('userPhoto').src = "./profile_images/" + up.get("photoName");
+      }
+    }).catch(error => {
+      console.error('Error fetching user profile:', error);
     });
 
-    
-
-
-    const query = Bmob.Query("chatRoom");
-    query.containedIn("RoomMember", [userId]);
-
-    query.find().then((groups) => {
+    // Fetch chat groups
+    const query = new AV.Query("chatRoom");
+    query.contains("RoomMember", userId);
+    query.find().then(groups => {
       const chatItemsContainer = document.getElementById('chatItems');
-      chatItemsContainer.innerHTML = ''; // Clear any existing content
+      chatItemsContainer.innerHTML = '';
 
-      groups.forEach((group) => {
-        // Create a new div for each chat item
-
+      groups.forEach(group => {
         const chatItem = document.createElement('div');
         chatItem.classList.add('chat-item');
-        chatItem.onclick = () => openChat(group.objectId, group.RoomName); // Handle chat click
+        chatItem.onclick = () => openChat(group.id, group.get("RoomName"));
 
-        // Create name div for each group
         const name = document.createElement('div');
         name.classList.add('name');
-        name.textContent = group.RoomName;
+        name.textContent = group.get("RoomName");
 
-        // Create last message div for each group
         const lastMessage = document.createElement('div');
         lastMessage.classList.add('last-message');
-        lastMessage.textContent = group.LastMessage || 'No messages yet'; // Handle if no last message exists
+        lastMessage.textContent = group.get("LastMessage") || 'No messages yet';
 
-        // Create timestamp div for each group
         const timestamp = document.createElement('div');
         timestamp.classList.add('timestamp');
-        timestamp.textContent = group.Timestamp || 'N/A'; // Handle if no timestamp exists
+        timestamp.textContent = group.get("Timestamp") || 'N/A';
 
-        // Append the elements to the chat item
         chatItem.appendChild(name);
         chatItem.appendChild(lastMessage);
         chatItem.appendChild(timestamp);
-
-        // Append the chat item to the chatItems container
         chatItemsContainer.appendChild(chatItem);
       });
-    }).catch((error) => {
+    }).catch(error => {
       console.error('Error fetching chat groups:', error);
     });
 
-    // Function to handle opening a chat
     function openChat(groupId, groupName) {
-      console.log(`Opening chat for group: ${groupName} (ID: ${groupId})`);
-      // You can add the logic to open the chat window for the specific group
+      window.location.href = `chat-page.html?groupId=${groupId}&groupName=${groupName}&userId=${userId}&username=${username}`;
     }
-
-
-    // Extract userId and username from the URL
-
-    const user = {
-      photo: 'https://via.placeholder.com/120',
-      name: username,
-      id: userId
-    };
-
-    // document.getElementById('userPhoto').src = user.photo;
-    document.getElementById('userName').textContent = user.name;
-    document.getElementById('userId').textContent = 'User ID: ' + user.id;
 
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
     }
 
-
-    // Function to navigate to profile settings
     function openSettings() {
       window.location.href = `profile-page.html?userId=${userId}&username=${username}`;
     }
 
-    // Function to open chat page for a specific group
-    function openChat(groupId, groupName) {
-      window.location.href = `chat-page.html?groupId=${groupId}&groupName=${groupName}&userId=${userId}&username=${username}`;
-    }
-
-    // Function to create a new chat group
     function createNewGroup() {
       const groupName = document.getElementById('newGroupName').value;
       if (groupName) {
-        const newGroupId = groupName.toLowerCase().replace(/\s+/g, '');
-        const newGroupItem = `
-          <div class="chat-item" onclick="openChat('${newGroupId}', '${groupName}')">
-            <div class="name">${groupName}</div>
-            <div class="last-message">New group created!</div>
-            <div class="timestamp">Just now</div>
-          </div>
-        `;
-        document.getElementById('chatItems').insertAdjacentHTML('beforeend', newGroupItem);
-        // Close the modal after creation
-        const modal = bootstrap.Modal.getInstance(document.getElementById('createGroupModal'));
-        modal.hide();
+        const newGroup = new AV.Object("chatRoom");
+        newGroup.set("RoomName", groupName);
+        newGroup.set("RoomHost", userId);
+        newGroup.set("RoomMember", [userId]);
+
+        newGroup.save().then(res => {
+          console.log("Chat room created:", res);
+          document.getElementById("newGroupName").value = "";
+        }).catch(err => {
+          console.error("Error creating chat room:", err);
+        });
       }
-
-      const query = Bmob.Query("chatRoom");
-      query.set("RoomName", groupName); // Current user's username
-      query.set("RoomHost", userId); // Message content
-
-      query.save().then((res) => {
-        console.log("chatRoom created:", res);
-        document.getElementById("newGroupName").value = ""; // Clear input field
-
-      }).catch((err) => {
-        console.error("Error creating chatRoom:", err);
-      });
     }
-
-    function goToMessages() {
-      window.location.href = `notice-page.html?userId=${userId}&username=${username}`;
-    }
-
-
-    var chatRoomHost = "";
 
     function searchGroup() {
       const groupId = document.getElementById('searchGroupName').value;
-      const query = Bmob.Query("chatRoom");
-      // query.equalTo("objectId", "==", groupId);
-
+      const query = new AV.Query("chatRoom");
       query.get(groupId).then(res => {
-        console.log(res)
         const searchResults = document.getElementById('searchResults');
         searchResults.innerHTML = '';
-
-        chatRoomHost = res.RoomHost;
-    
+        
         const groupItem = document.createElement('li');
         groupItem.classList.add('list-group-item');
-        groupItem.textContent = `${res.RoomName} (ID: ${res.objectId})`;
+        groupItem.textContent = `${res.get("RoomName")} (ID: ${res.id})`;
         searchResults.appendChild(groupItem);
-
+        
         const circleIcon = document.createElement('div');
         circleIcon.classList.add('circle-icon');
-        circleIcon.onclick = () => joinGroup(res.objectId, res.RoomName);
-
-        // Append the circle to the group item
+        circleIcon.onclick = () => joinGroup(res.id, res.get("RoomName"));
         groupItem.appendChild(circleIcon);
         searchResults.appendChild(groupItem);
-
-        }).catch(err => {
-          searchResults.innerHTML = '<li class="list-group-item text-center">No groups found</li>';
-          console.log(err)
-      })
-
+      }).catch(err => {
+        document.getElementById('searchResults').innerHTML = '<li class="list-group-item text-center">No groups found</li>';
+        console.log(err);
+      });
     }
 
-
     function joinGroup(groupId, groupName) {
-      const query = Bmob.Query('userNotice');
-      query.set("fromUserId", userId);
-      query.set("fromUserName", username);
-      query.set("toUser", chatRoomHost);
-      query.set("groupId", groupId);
-      query.set("RoomName", groupName);
-      query.set("status", false);
-      // query.set("action", "acting");
+      const request = new AV.Object('userNotice');
+      request.set("fromUserId", userId);
+      request.set("fromUserName", username);
+      request.set("groupId", groupId);
+      request.set("RoomName", groupName);
+      request.set("status", false);
 
-      query.save()
-        .then(res => {
-          console.log(res);
-          showPopup(`Request to join "${groupName}" sent successfully.`, 'success');
-
-          const modal = bootstrap.Modal.getInstance(document.getElementById('searchGroupModal'));
-          modal.hide();
-        })
-        .catch(err => {
-          console.error(err);
-          showPopup("Failed to send the request. Please try again.", 'error');
-        });
+      request.save().then(res => {
+        console.log(res);
+        showPopup(`Request to join "${groupName}" sent successfully.`, 'success');
+      }).catch(err => {
+        console.error(err);
+        showPopup("Failed to send the request. Please try again.", 'error');
+      });
     }
 
     function showPopup(message, type) {
       const popup = document.createElement('div');
       popup.className = `popup-notification ${type}`;
-      popup.innerHTML = `
-        <div class="popup-content">
-          ${message}
-        </div>
-      `;
-
+      popup.innerHTML = `<div class="popup-content">${message}</div>`;
       document.body.appendChild(popup);
 
       setTimeout(() => {
@@ -566,171 +499,6 @@
         setTimeout(() => popup.remove(), 500);
       }, 3000);
     }
-
-    // let lastVisitTimes = {};
-    //     // Function to open a chat and mark it as viewed
-    // function openChat(groupId, groupName) {
-    //   sendOpenTime(groupId);
-
-    //   // window.location.href = `chat-page.html?groupId=${groupId}&groupName=${groupName}&userId=${userId}&username=${username}`;
-    // }
-
-    // function sendOpenTime(groupId) {
-
-    //   const now = new Date().toISOString(); // Get current timestamp
-    //   // Get the current timestamp
-    //   // localStorage.setItem(`lastViewed_${groupId}`, now); 
-    //   // Store the timestamp
-    //   const query = Bmob.Query("groupCheckTime");
-
-    //   query.equalTo("userId", "==", userId);
-
-    //   query.find().then(checkTimes => {
-
-    //     if (checkTimes.length > 0){
-    //       const qupdate = Bmob.Query('groupCheckTime');
-    //       qupdate.get(checkTimes[0].objectId).then(res => {
-    //         console.log(res)
-
-    //         // res.set("openTime", now);
-    //         // res.set("closeTime", now);
-    //         res.set("groupId", groupId);
-    //         res.set("userId", userId);
-    //         res.save()
-    //       }).catch(err => {
-    //         console.log(err)
-    //       })
-    //     }else{
-    //       const qcreate = Bmob.Query('groupCheckTime');
-    //       // qcreate.set("openTime", now);
-    //       // qcreate.set("closeTime", now);
-    //       qcreate.set("groupId", groupId);
-    //       qcreate.set("userId", userId);
-
-    //       qcreate.save()
-    //     }
-        
-
-    //   }).catch(err => {
-    //     console.log(err)
-    //   }) 
-
-
-    // }
-
-    // Function to fetch chat groups and display unread indicators
-    function fetchChatGroups(groupId) {
-      const query = Bmob.Query("chatRoom");
-      query.containedIn("RoomMember", [userId]);
-
-      query.find().then((groups) => {
-
-        const chatItemsContainer = document.getElementById('chatItems');
-        const homeRedDot = document.getElementById('homeRedDot');
-        let hasUnread = false; // Flag to track if any group has unread messages
-
-        chatItemsContainer.innerHTML = ''; // Clear existing chat items
-
-        groups.forEach((group) => {
-          const lastViewed = localStorage.getItem(`lastViewed_${group.objectId}`);
-          var isNewMessage;
-
-          // Update the global unread flag
-          if (isNewMessage) {
-            hasUnread = true;
-          }
-
-          // Create the chat item
-          const chatItem = document.createElement('div');
-          chatItem.classList.add('chat-item');
-          chatItem.onclick = () => openChat(group.objectId, group.RoomName);
-
-          const name = document.createElement('div');
-          name.classList.add('name');
-          name.textContent = group.RoomName;
-
-          const lastMessage = document.createElement('div');
-          lastMessage.classList.add('last-message');
-          lastMessage.textContent = group.LastMessage || 'No messages yet';
-
-          const timestamp = document.createElement('div');
-          timestamp.classList.add('timestamp');
-          timestamp.textContent = group.Timestamp || 'N/A';
-
-
-          // query last message of each group
-          const qlastM = Bmob.Query("chatMessage");
-          qlastM.equalTo("groupId", "==", group.objectId);
-          qlastM.order("-createdAt");
-          qlastM.limit(1);
-
-          qlastM.find().then((res) => {
-              
-              // res[0].objectId
-            console.log(res)
-
-              const query = Bmob.Query("groupCheckTime");
-
-              query.equalTo("userId", "==", userId);
-
-              query.equalTo("groupId", "==", group.objectId);
-
-              query.find().then(checkMessages => {
-
-                console.log(checkMessages[0].lastMessageId)
-                console.log(res[res.length - 1].objectId)
-               
-                if (checkMessages[0].lastMessageId != res[res.length - 1].objectId){
-                  isNewMessage = 1;
-                  // Add red dot if the group has new messages
-                  if (isNewMessage) {
-                    const redDot = document.createElement('span');
-                    redDot.style = `
-                      width: 10px;
-                      height: 10px;
-                      background-color: red;
-                      border-radius: 50%;
-                      display: inline-block;
-                      margin-left: 10px;
-                    `;
-                    name.appendChild(redDot);
-                  }
-                }else{
-                  isNewMessage = 0;
-                }
-
-              }).catch(err => {
-                console.log(err)
-              }) 
-
-          }).catch(err => {
-            console.log(err)
-          }) 
-
-          
-
-          
-
-          chatItem.appendChild(name);
-          chatItem.appendChild(lastMessage);
-          chatItem.appendChild(timestamp);
-          chatItemsContainer.appendChild(chatItem);
-        });
-
-       
-      }).catch((error) => {
-        console.error('Error fetching chat groups:', error);
-      });
-    }
-
-    // Call fetchChatGroups when the page loads
-    document.addEventListener('DOMContentLoaded', fetchChatGroups);
-
-
-
-
-
-
 
 
   </script>

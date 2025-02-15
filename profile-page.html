@@ -9,7 +9,7 @@
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-  <script type="text/javascript" src="js/Bmob-1.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
   <style>
     body {
       background-color: #ffffff;
@@ -182,152 +182,99 @@
   <!-- JavaScript to handle form submission -->
   <script>
 
-    Bmob.initialize("5fae1458dd7d8bd4b498fe557bda8a01", "9e76c5623c742c04fe0481b025d1546f");
+    // Initialize LeanCloud
+    AV.init({
+      appId: "ukCMrVVZEvwIIm0s3VhiFEOP-gzGzoHsz",
+      appKey: "HGRJgdvbtUmxQRiJcMI6YgGD",
+      serverURL: "https://ukcmrvvz.lc-cn-n1-shared.com"
+    });
 
     function getQueryParam(param) {
       const urlParams = new URLSearchParams(window.location.search);
       return urlParams.get(param);
     }
 
-    // Extract userId from the URL
     const userId = getQueryParam('userId');
     const username = getQueryParam('username');
 
     document.getElementById('username').innerHTML = username || '';
 
     function goBackToHome() {
-      // Redirect to home page with the userId as a query parameter
       window.location.href = `home-page.html?userId=${userId}&username=${username}`;
     }
 
     document.addEventListener("DOMContentLoaded", function () {
-
-      // Fetch profile data
-      const query = Bmob.Query('userProfile');
-      query.equalTo("userId", "==", userId);
-
-      query.find().then(profiles => {
-        if (profiles.length > 0) {
-          const profile = profiles[0];
-
-          // Populate the form fields
+      const query = new AV.Query('userProfile');
+      query.equalTo("userId", userId);
+      
+      query.first().then(profile => {
+        if (profile) {
+          document.getElementById('gender').value = profile.get('gender') || '';
+          document.getElementById('birthdate').value = profile.get('birthdate') || '';
+          document.getElementById('about').value = profile.get('about') || '';
           
-          document.getElementById('gender').value = profile.gender || '';
-          document.getElementById('birthdate').value = profile.birthdate || '';
-          document.getElementById('about').value = profile.about || '';
-
-          console.log(profile);
-          // Update profile photo
           const profilePhotoPreview = document.getElementById('profilePhotoPreview');
-          if (profile.photoName) {
-            profilePhotoPreview.src = `profile_images/${profile.photoName}`;
-          } else {
-            profilePhotoPreview.src = 'https://via.placeholder.com/120'; // Default photo
-          }
-
-          // document.getElementById('profilePhotoPreview').src = img.src;
-
+          profilePhotoPreview.src = profile.get('photoName') ? `profile_images/${profile.get('photoName')}` : 'https://via.placeholder.com/120';
         } else {
           console.log("No profile data found for this user.");
         }
       }).catch(err => console.error("Error fetching profile data:", err));
     });
 
-
-    
     var saveProfile = function() {
-    // Get the selected photo name from sessionStorage
-      const photoName = sessionStorage.getItem('selectedPhotoName') || 'default.png'; // Default if no photo selected
-
-      console.log(photoName);
-      
-      // Get other form values
+      const photoName = sessionStorage.getItem('selectedPhotoName') || 'default.png';
       const gender = document.getElementById('gender').value;
       const birthdate = document.getElementById('birthdate').value;
       const about = document.getElementById('about').value;
 
-
-      // Log the values to the console (optional)
-      console.log('Gender:', gender);
-      console.log('Birthdate:', birthdate);
-      console.log('About:', about);
-      console.log('Selected Photo Name:', photoName);
-
-      // Save to Bmob
-      const query = Bmob.Query('userProfile');
-
-      query.equalTo("userId", "==", userId);
-
-
-      query.find().then(profiles => {
-
-        if (profiles.length > 0){
-          const qupdate = Bmob.Query('userProfile');
-          qupdate.get(profiles[0].objectId).then(res => {
-            console.log(res)
-
-            res.set("gender", gender);
-            res.set("birthdate", birthdate);
-            res.set("about", about);
-            res.set("photoName", photoName);
-            res.save()
-          }).catch(err => {
-            console.log(err)
-          })
-        }else{
-          const qcreate = Bmob.Query('userProfile');
-          qcreate.set("userId", userId);
-          qcreate.set("gender", gender);
-          qcreate.set("birthdate", birthdate);
-          qcreate.set("about", about);
-          qcreate.set("photoName", photoName);
-
-          qcreate.save()
+      const query = new AV.Query('userProfile');
+      query.equalTo("userId", userId);
+      
+      query.first().then(profile => {
+        if (profile) {
+          profile.set("gender", gender);
+          profile.set("birthdate", birthdate);
+          profile.set("about", about);
+          profile.set("photoName", photoName);
+          return profile.save();
+        } else {
+          const newProfile = new AV.Object('userProfile');
+          newProfile.set("userId", userId);
+          newProfile.set("gender", gender);
+          newProfile.set("birthdate", birthdate);
+          newProfile.set("about", about);
+          newProfile.set("photoName", photoName);
+          return newProfile.save();
         }
-        
+      }).then(() => {
+        console.log("Profile saved successfully.");
+      }).catch(err => console.error("Error saving profile:", err));
+    };
 
-      }).catch(err => {
-        console.log(err)
-      }) 
-    }// Set the photo name
-
-
-
-
-    let links = []
-
+    let links = [];
     for (var i = 1; i <= 30; i++) {
       links.push(i + ".png");
     }
 
-    console.log(links);
     document.addEventListener("DOMContentLoaded", function () {
       const imageGallery = document.getElementById("imageGallery");
-
       links.forEach(link => {
         const img = document.createElement('img');
-
         img.src = `profile_images/${link}`;
         img.className = 'img-thumbnail m-2';
         img.style.width = '100px';
         img.style.cursor = 'pointer';
-
         img.onclick = function () {
-          // Update profile photo preview
           document.getElementById('profilePhotoPreview').src = img.src;
-
-          // Extract and store the selected photo's filename
-          const photoName = img.src.split('/').pop(); // Get the filename
-          sessionStorage.setItem('selectedPhotoName', photoName); // Save it temporarily
-
-          // Close the modal
+          const photoName = img.src.split('/').pop();
+          sessionStorage.setItem('selectedPhotoName', photoName);
           const modal = bootstrap.Modal.getInstance(document.getElementById('imageSelectionModal'));
           modal.hide();
         };
-
         imageGallery.appendChild(img);
       });
     });
+
 
   
 

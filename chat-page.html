@@ -12,7 +12,7 @@
 
   <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
-  <script type="text/javascript" src="js/Bmob-1.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
   <style>
     body {
       background-color: #ffffff; /* White background */
@@ -348,9 +348,12 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
 
 <script type="text/javascript">
-  // document.addEventListener('DOMContentLoaded', function () {
-  //   console.log("Page loaded, fetching chat messages...");
-  // });
+
+  AV.init({
+    appId: "ukCMrVVZEvwIIm0s3VhiFEOP-gzGzoHsz",
+    appKey: "HGRJgdvbtUmxQRiJcMI6YgGD",
+    serverURLs: "https://ukcmrvvz.lc-cn-n1-shared.com"
+  });
 
   document.addEventListener("DOMContentLoaded", function () {
     refreshChatWindow(); // Load the initial chat messages
@@ -358,7 +361,6 @@
 
   var memberIds = [];
 
-  Bmob.initialize("5fae1458dd7d8bd4b498fe557bda8a01", "9e76c5623c742c04fe0481b025d1546f");
 
   const params = new URLSearchParams(window.location.search);
   const userId = params.get("userId");
@@ -378,26 +380,29 @@
     const messageInput = document.getElementById("messageInput").value.trim();
     if (messageInput === "") return; // Prevent empty messages
 
-    const query = Bmob.Query("chatMessage");
-    query.set("name", username);
-    query.set("fromUserId", userId); // Current user's username
-    query.set("message", messageInput);
-    query.set("groupId", groupId); // Message content
-    query.save().then((res) => {
-      console.log("Message sent:", res);
-      document.getElementById("messageInput").value = ""; // Clear input field
-      refreshChatWindow(); // Refresh the chat without reloading the page
+    const ChatMessage = new AV.Object("chatMessage");
+    ChatMessage.set("name", username);
+    ChatMessage.set("fromUserId", userId); // Current user's username
+    ChatMessage.set("message", messageInput);
+    ChatMessage.set("groupId", groupId); // Message content
+
+    ChatMessage.save().then((res) => {
+        console.log("Message sent:", res);
+        document.getElementById("messageInput").value = ""; // Clear input field
+        refreshChatWindow(); // Refresh the chat without reloading the page
     }).catch((err) => {
-      console.error("Error sending message:", err);
+        console.error("Error sending message:", err);
     });
   };
 
-    document.getElementById("messageInput").addEventListener("keydown", function (event) {
-    if (event.key === "Enter") {
-      event.preventDefault();
-      sending();
-    }
+  // Send message on Enter key press
+  document.getElementById("messageInput").addEventListener("keydown", function (event) {
+      if (event.key === "Enter") {
+          event.preventDefault();
+          sending();
+      }
   });
+
 
 
   function goToHomePage() {
@@ -406,112 +411,67 @@
 
 
   var view = function () {
-    const query = Bmob.Query("chatMessage");
-    query.equalTo("groupId", "==", groupId);
+    const query = new AV.Query("chatMessage");
+    query.equalTo("groupId", groupId);
 
     query.find().then(res => {
-      console.log(res);
-      displayMessages(res); // Display fetched messages
+        console.log(res);
+        displayMessages(res); // Display fetched messages
     }).catch(err => {
-      console.error(err);
+        console.error("Error fetching messages:", err);
     });
   };
 
+
   function refreshChatWindow() {
-    const query = Bmob.Query("chatMessage");
-    query.equalTo("groupId", "==", groupId);
+    const query = new AV.Query("chatMessage");
+    query.equalTo("groupId", groupId);
 
     query.find().then((res) => {
+        if (res.length === 0) return; // If no messages, return
 
-      var lastMessage = res[res.length - 1];
-      displayMessages(res); 
-      const q = Bmob.Query("groupCheckTime");
+        var lastMessage = res[res.length - 1];
+        displayMessages(res);
 
-      q.equalTo("userId", "==", userId);
+        const checkTimeQuery = new AV.Query("groupCheckTime");
+        checkTimeQuery.equalTo("userId", userId);
 
-      q.find().then(checkTimes => {
+        checkTimeQuery.find().then(checkTimes => {
+            if (checkTimes.length > 0) {
+                // Update existing entry
+                const checkTimeObj = checkTimes[0];
+                checkTimeObj.set("lastMessageId", lastMessage.id);
+                checkTimeObj.set("groupId", groupId);
+                checkTimeObj.set("userId", userId);
+                checkTimeObj.save().then(() => {
+                    console.log("Updated last message check time.");
+                }).catch(err => {
+                    console.error("Error updating check time:", err);
+                });
+            } else {
+                // Create a new entry
+                const newCheckTime = new AV.Object("groupCheckTime");
+                newCheckTime.set("lastMessageId", lastMessage.id);
+                newCheckTime.set("groupId", groupId);
+                newCheckTime.set("userId", userId);
 
-        if (checkTimes.length > 0){
-          const qupdate = Bmob.Query('groupCheckTime');
-          qupdate.get(checkTimes[0].objectId).then(res => {
-            console.log(res)
-            res.set("lastMessageId", lastMessage.objectId)
-            res.set("groupId", groupId);
-            res.set("userId", userId);
-            res.save()
-          }).catch(err => {
-            console.log(err)
-          })
-        }else{
-          const qcreate = Bmob.Query('groupCheckTime');
-          res.set("lastMessageId", lastMessage.objectId)
-          qcreate.set("groupId", groupId);
-          qcreate.set("userId", userId);
-
-          qcreate.save()
-        }
-        
-
-      }).catch(err => {
-        console.log(err)
-      }) 
+                newCheckTime.save().then(() => {
+                    console.log("Created new check time entry.");
+                }).catch(err => {
+                    console.error("Error creating check time entry:", err);
+                });
+            }
+        }).catch(err => {
+            console.error("Error fetching check times:", err);
+        });
     }).catch((err) => {
-      console.error("Error refreshing chat:", err);
+        console.error("Error refreshing chat:", err);
     });
   }
 
+
   // Call `refreshChatWindow` every few seconds to update the chat
   setInterval(refreshChatWindow, 3000); // Refresh every 3 seconds
-
-
-  // function displayMessages(messages) {
-  //   const chatWindow = document.getElementById("chatWindow");
-  //   const currentMessagesCount = chatWindow.children.length;
-
-  //   chatWindow.innerHTML = ""; // Clear existing messages
-
-  //   messages.forEach((message) => {
-  //     const messageDiv = document.createElement("div");
-  //     messageDiv.className = `chat-message ${
-  //       message.name === username ? "me" : "them"
-  //     }`;
-
-  //     // Add sender's name
-  //     const senderSpan = document.createElement("span");
-  //     senderSpan.className = "sender";
-  //     senderSpan.textContent = message.name;
-
-  //     // Add message bubble
-  //     const bubbleDiv = document.createElement("div");
-  //     bubbleDiv.className = "message-bubble";
-  //     bubbleDiv.textContent = message.message;
-
-  //     // Add timestamp
-  //     const timestampSpan = document.createElement("span");
-  //     timestampSpan.className = "timestamp";
-  //     if (message.createdAt) {
-  //       const date = new Date(message.createdAt);
-  //       timestampSpan.textContent = `${date.toLocaleDateString()} ${date.toLocaleTimeString()}`;
-  //     }
-
-  //     messageDiv.appendChild(senderSpan);
-  //     messageDiv.appendChild(bubbleDiv);
-  //     if (message.createdAt) messageDiv.appendChild(timestampSpan);
-
-  //     chatWindow.appendChild(messageDiv);
-  //   });
-
-  //   // Scroll to bottom only if new messages are added
-  //   if (messages.length > currentMessagesCount) {
-  //     chatWindow.scrollTop = chatWindow.scrollHeight;
-  //   }
-  // }
-
-  // // Fetch chat list on page load
-  // document.addEventListener('DOMContentLoaded', function () {
-  //   console.log("Page loaded, fetching chat messages...");
-  //   view(); // Fetch and display chat messages
-  // });
 
 
   // Show group list in a modal
@@ -519,23 +479,25 @@
     const modal = document.getElementById('groupModal');
     modal.style.display = 'block';
 
+    const query = new AV.Query("chatRoom");
+    query.containsAll("RoomMember", [userId]); // LeanCloud uses `containsAll` for array matching
 
-    const query = Bmob.Query("chatRoom");
-    query.containedIn("RoomMember", [userId]);
     query.find().then((groups) => {
-      const groupList = document.getElementById("groupList");
-      groupList.innerHTML = "";
-      console.log(groups);
+        const groupList = document.getElementById("groupList");
+        groupList.innerHTML = "";
+        console.log(groups);
 
-      groups.forEach((group) => {
-        const listItem = document.createElement("li");
-        listItem.textContent = group.RoomName;
-        listItem.onclick = () => switchGroup(group.objectId, group.RoomName);
-        groupList.appendChild(listItem);
-      });
-
-    })
+        groups.forEach((group) => {
+            const listItem = document.createElement("li");
+            listItem.textContent = group.get("RoomName");
+            listItem.onclick = () => switchGroup(group.id, group.get("RoomName")); // Use `.id` in LeanCloud
+            groupList.appendChild(listItem);
+        });
+    }).catch(err => {
+        console.error("Error fetching groups:", err);
+    });
   }
+
 
   function closeModal() {
     const modal = document.getElementById('groupModal');
@@ -585,70 +547,88 @@
     checkRoomHost();
   });
 
+  // Function to check if the current user is the room host
   function checkRoomHost() {
-    const query = Bmob.Query("chatRoom");
+    const query = new AV.Query('chatRoom'); // LeanCloud query for 'chatRoom' class
     query.get(groupId).then((room) => {
-      if (room.RoomHost === userId) { // Check if current user is the host
-        document.getElementById("roomHostIcon").style.display = "block"; // Show the icon
+      if (room.get('RoomHost') === userId) { // Check if current user is the host
+        document.getElementById('roomHostIcon').style.display = 'block'; // Show the icon
       }
     }).catch((err) => {
-      console.error("Error checking room host:", err);
+      console.error('Error checking room host:', err);
     });
   }
 
 
+  // Function to show the room members in the modal
   function showRoomMembers() {
     const modal = document.getElementById('roomMembersModal');
     modal.style.display = 'block';
 
-    const query = Bmob.Query("chatRoom");
+    const query = new AV.Query('chatRoom'); // LeanCloud query for 'chatRoom' class
     query.get(groupId).then((room) => {
-      memberIds = room.RoomMember || []; // Array of member IDs
-      fetchMembers(memberIds);
 
+      const memberIds = room.get('RoomMember') || []; // Get member IDs array
+
+      fetchMembers(memberIds); // Pass the member IDs to another function to fetch details
     }).catch((err) => {
-      console.error("Error fetching room members:", err);
+      console.error('Error fetching room members:', err);
     });
   }
 
+
+  // Function to fetch members' data
   function fetchMembers(memberIds) {
-    const userQuery = Bmob.Query("_User"); // Query the User table
-    userQuery.containedIn("objectId", memberIds);
-    userQuery.order("username"); // Order by username
+    const userQuery = new AV.Query('_User'); // LeanCloud query for '_User' class
+    userQuery.containedIn('objectId', memberIds); // Filter by member IDs
+    userQuery.addAscending('username'); // Order by username in ascending order
+
     userQuery.find().then((members) => {
       this.roomMembers = members;
       console.log(this.roomMembers);
-      displayRoomMembers(members);
+      displayRoomMembers(members); // Function to display members
     }).catch((err) => {
-      console.error("Error fetching user data:", err);
+      console.error('Error fetching user data:', err);
     });
   }
 
+
+  // Function to display messages and update group check time
   function displayMessages(messages, groupId) {
-    const query = Bmob.Query("chatMessage");
-    query.equalTo("groupId", "==", groupId);
+    const query = new AV.Query('chatMessage'); // LeanCloud query for 'chatMessage' class
+    query.equalTo('groupId', groupId); // Filter by groupId
 
     query.find().then((res) => {
+      var lastMessage = res[res.length - 1]; // Get the last message
+      displayMessages(res); // Display messages
 
-      var lastMessage = res[res.length - 1];
-      displayMessages(res); 
-      const q = Bmob.Query("groupCheckTime");
+      const q = new AV.Query('groupCheckTime'); // LeanCloud query for 'groupCheckTime' class
+      q.equalTo('userId', userId); // Filter by userId
+      q.equalTo('groupId', groupId); // Filter by groupId
 
-      q.equalTo("userId", "==", userId);
-      q.equalTo("groupId", "==", groupId);
+      q.find().then((checkTimes) => {
+        if (checkTimes.length > 0) {
+          const qupdate = new AV.Query('groupCheckTime');
+          qupdate.get(checkTimes[0].id).then((res) => { // Get the first checkTime entry
+            console.log(res);
+            res.set('lastMessageId', lastMessage.id); // Set the lastMessageId
+            res.save().then(() => {
+              console.log('Group check time updated');
+            }).catch((err) => {
+              console.error('Error saving group check time:', err);
+            });
+          }).catch((err) => {
+            console.error('Error retrieving groupCheckTime:', err);
+          });
+        }
+      }).catch((err) => {
+        console.error('Error fetching group check time:', err);
+      });
+    }).catch((err) => {
+      console.error('Error fetching chat messages:', err);
+    });
+  
 
-      q.find().then(checkTimes => {
-        const qupdate = Bmob.Query('groupCheckTime');
-        qupdate.get(checkTimes[0].objectId).then(res => {
-          console.log(res)
-          res.set("lastMessageId", lastMessage.objectId)
-          res.save()
-        }).catch(err => {
-          console.log(err)
-        })
-
-      })
-    })
 
 
     const chatWindow = document.getElementById("chatWindow");
@@ -730,29 +710,26 @@
 
   var profiles = [];
   
-  function fetchUserPhoto(){
-
-    const query = Bmob.Query("chatRoom");
+  // Function to fetch user photos
+  function fetchUserPhoto() {
+    const query = new AV.Query('chatRoom'); // LeanCloud query for 'chatRoom' class
     query.get(groupId).then((room) => {
-      
-      memberIds = room.RoomMember || []; // Array of member IDs
+      const memberIds = room.get('RoomMember') || []; // Get member IDs from 'RoomMember' field
 
-      let qp = Bmob.Query("userProfile");
+      const qp = new AV.Query('userProfile'); // LeanCloud query for 'userProfile' class
+      qp.containedIn('userId', memberIds); // Filter by userIds in memberIds array
 
-      qp.containedIn("userId", memberIds);
-
-      qp.find().then( ups => {
+      qp.find().then((ups) => {
         console.log(ups);
-        this.profiles = ups;
-
+        this.profiles = ups; // Store profiles in 'this.profiles' or handle as needed
       }).catch((error) => {
-        console.error('Error fetching chat groups:', error);
+        console.error('Error fetching user profiles:', error);
       });
-
     }).catch((err) => {
-      console.error("Error fetching room members:", err);
+      console.error('Error fetching chat room members:', err);
     });
   }
+
 
 
   function displayRoomMembers(members) {
@@ -760,6 +737,9 @@
     membersList.innerHTML = ""; // Clear existing members
 
     members.forEach((member) => {
+
+      console.log("-----");
+      console.log(member);
       const listItem = document.createElement("li");
       listItem.style.display = "flex";
       listItem.style.justifyContent = "space-between";
@@ -772,7 +752,7 @@
 
       // Member name
       const nameSpan = document.createElement("span");
-      nameSpan.textContent = member.username;
+      nameSpan.textContent = member.get("username");
       nameSpan.style.flexGrow = "1";
       nameSpan.style.fontSize = "1rem";
       nameSpan.style.color = "#333";
@@ -794,21 +774,24 @@
   }
 
 
+  // Function to remove a member from the chat room
   function removeMember(memberId) {
     if (!confirm("Are you sure you want to remove this member?")) return;
 
-    const query = Bmob.Query("chatRoom");
+    const query = new AV.Query('chatRoom'); // LeanCloud query for 'chatRoom' class
     query.get(groupId).then((room) => {
-      const updatedMembers = room.RoomMember.filter((id) => id !== memberId); // Remove the member
-      room.set("RoomMember", updatedMembers);
-      return room.save(); // Save updated member list
+      const updatedMembers = room.get('RoomMember').filter((id) => id !== memberId); // Remove the member from RoomMember
+      room.set('RoomMember', updatedMembers); // Set the updated member list
+
+      return room.save(); // Save the updated room object
     }).then(() => {
       alert("Member removed successfully.");
-      showRoomMembers(); // Refresh the list
+      showRoomMembers(); // Refresh the list of members
     }).catch((err) => {
-      console.error("Error removing member:", err);
+      console.error('Error removing member:', err);
     });
   }
+
 
   function closeRoomMembersModal() {
     const modal = document.getElementById('roomMembersModal');
