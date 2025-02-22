@@ -413,6 +413,10 @@
         chatItem.appendChild(lastMessage);
         chatItem.appendChild(timestamp);
         chatItemsContainer.appendChild(chatItem);
+
+        console.log(group);
+        console.log("group id: " + group.id);
+        getLastMessage(group.id, lastMessage, timestamp);
       });
     }).catch(error => {
       console.error('Error fetching chat groups:', error);
@@ -498,6 +502,41 @@
         popup.classList.add('fade-out');
         setTimeout(() => popup.remove(), 500);
       }, 3000);
+    }
+
+    function goToMessages() {
+      window.location.href = `notice-page.html?userId=${userId}&username=${username}`;
+
+    }
+
+    function getLastMessage(groupId, messageElement, timestampElement) {
+      const messageQuery = new AV.Query("chatMessage");
+      messageQuery.equalTo("groupId", groupId);
+      messageQuery.descending("createdAt"); // Get the latest message
+      messageQuery.limit(1); // Only fetch the most recent message
+
+        // const messages = messageQuery.find();
+
+      messageQuery.find().then((messages) => {
+
+          if (messages.length > 0) {
+            const latestMessage = messages[0];
+            messageElement.textContent = latestMessage.get("message") || "No messages yet";
+            const messageTime = latestMessage.createdAt;
+            timestampElement.textContent = messageTime ? messageTime.toLocaleString() : "N/A";
+          } else {
+            messageElement.textContent = "No messages yet";
+            timestampElement.textContent = "N/A";
+          }
+
+          console.log("Got last message: " + messages[0]);
+
+        }).catch((err) => {
+          console.error("Error fetching last message:", err);
+          messageElement.textContent = "Failed to load message";
+          timestampElement.textContent = "N/A";
+        });
+
     }
 
 

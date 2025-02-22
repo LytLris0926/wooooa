@@ -368,6 +368,9 @@
   const groupName = params.get("groupName");
   const groupId = params.get("groupId");
 
+  console.log("++++++");
+  console.log(groupId);
+
   fetchUserPhoto()
 
   document.getElementById("groupName").textContent = groupName;
@@ -410,17 +413,17 @@
   }
 
 
-  var view = function () {
-    const query = new AV.Query("chatMessage");
-    query.equalTo("groupId", groupId);
+  // var view = function () {
+  //   const query = new AV.Query("chatMessage");
+  //   query.equalTo("groupId", groupId);
 
-    query.find().then(res => {
-        console.log(res);
-        displayMessages(res); // Display fetched messages
-    }).catch(err => {
-        console.error("Error fetching messages:", err);
-    });
-  };
+  //   query.find().then(res => {
+  //       console.log(res);
+  //       displayMessages(res, groupId); // Display fetched messages
+  //   }).catch(err => {
+  //       console.error("Error fetching messages:", err);
+  //   });
+  // };
 
 
   function refreshChatWindow() {
@@ -431,7 +434,7 @@
         if (res.length === 0) return; // If no messages, return
 
         var lastMessage = res[res.length - 1];
-        displayMessages(res);
+        displayMessages(res, groupId);
 
         const checkTimeQuery = new AV.Query("groupCheckTime");
         checkTimeQuery.equalTo("userId", userId);
@@ -471,7 +474,7 @@
 
 
   // Call `refreshChatWindow` every few seconds to update the chat
-  setInterval(refreshChatWindow, 3000); // Refresh every 3 seconds
+  setInterval(refreshChatWindow, 15000); // Refresh every 3 seconds
 
 
   // Show group list in a modal
@@ -595,12 +598,16 @@
 
   // Function to display messages and update group check time
   function displayMessages(messages, groupId) {
+
+    console.log("------");
+    console.log(messages);
+    console.log(groupId);
     const query = new AV.Query('chatMessage'); // LeanCloud query for 'chatMessage' class
     query.equalTo('groupId', groupId); // Filter by groupId
 
     query.find().then((res) => {
       var lastMessage = res[res.length - 1]; // Get the last message
-      displayMessages(res); // Display messages
+      // displayMessages(res); // Display messages
 
       const q = new AV.Query('groupCheckTime'); // LeanCloud query for 'groupCheckTime' class
       q.equalTo('userId', userId); // Filter by userId
@@ -640,7 +647,7 @@
     messages.forEach((message) => {
       const messageDiv = document.createElement("div");
       messageDiv.className = `chat-message ${
-        message.name === username ? "me" : "them"
+        message.get("name") === username ? "me" : "them"
       }`;
 
       // Create a container for the profile photo and messag
@@ -648,12 +655,12 @@
       // Add sender's name
       const senderSpan = document.createElement("span");
       senderSpan.className = "sender";
-      senderSpan.textContent = message.name;
+      senderSpan.textContent = message.get("name");
 
       // Add message bubble
       const bubbleDiv = document.createElement("div");
       bubbleDiv.className = "message-bubble";
-      bubbleDiv.textContent = message.message;
+      bubbleDiv.textContent = message.get("message");
 
       // Add timestamp
       const timestampSpan = document.createElement("span");
@@ -675,7 +682,7 @@
 
       // Add profile photo
       const profileImg = document.createElement("img");
-      profileImg.alt = `${message.name}'s profile photo`;
+      profileImg.alt = `${message.get("name")}'s profile photo`;
       profileImg.className = "profile-img";
       profileImg.style.width = "40px";
       profileImg.style.height = "40px";
@@ -689,10 +696,14 @@
       messageDiv.appendChild(containerDiv);
       messageDiv.appendChild(bubbleDiv); // Add message bubble
 
+
+      // console.log(profiles);
       if (profiles.length > 0){
           profiles.forEach( profile => {
+              // console.log('profile:');
+              // console.log(profile);
               if (profile.userId == message.fromUserId) {
-                profileImg.src = "./profile_images/" + profile.photoName;   
+                profileImg.src = "./profile_images/" + profile.get("photoName");   
               }  
           }) 
       }else {

@@ -139,10 +139,14 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="js/Bmob-1.7.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.0/dist/av-min.js"></script>
   <script>
-    // Initialize Bmob
-    Bmob.initialize("5fae1458dd7d8bd4b498fe557bda8a01", "9e76c5623c742c04fe0481b025d1546f");
+    // Initialize LeanCloud
+    AV.init({
+      appId: "5fae1458dd7d8bd4b498fe557bda8a01",
+      appKey: "9e76c5623c742c04fe0481b025d1546f",
+      serverURLs: "https://5fae1458.lc-cn-n1-shared.com"
+    });
 
     const userId = new URLSearchParams(window.location.search).get('userId');
     const username = new URLSearchParams(window.location.search).get('username');
@@ -154,46 +158,43 @@
 
     const messagesContainer = document.getElementById('messagesContainer');
 
-    fetchMessages()
+    fetchMessages();
 
-    function fetchMessages(){
-      // Fetch messages sent to the user where status is false
-      const query = Bmob.Query("userNotice");
-      query.equalTo("toUser", "==", userId);
-      // query.equalTo("action", "==", "acting"); // Only display messages with status false
-      query.equalTo("status", "==", false);
-      query.order("-createdAt");
+    function fetchMessages() {
+      const query = new AV.Query('userNotice');
+      query.equalTo('toUser', userId);
+      query.equalTo('status', false);
+      query.descending('createdAt');
 
       query.find().then(messages => {
-
-        console.log("get messages");
         if (messages.length === 0) {
           messagesContainer.innerHTML = '<p class="no-messages">No messages found.</p>';
           return;
         }
-        console.log(messages);
+
         messages.forEach(message => {
+          const data = message.toJSON();
           const messageCard = document.createElement('div');
           messageCard.classList.add('col-md-6');
           messageCard.innerHTML = `
-            <div class="message-card" id="message-${message.objectId}">
+            <div class="message-card" id="message-${data.objectId}">
               <div class="card-header">
-                From: ${message.fromUserName} (ID: ${message.fromUserId})
+                From: ${data.fromUserName} (ID: ${data.fromUserId})
               </div>
               <div class="card-body">
                 <p>请求入群:</p>
-                <p>${message.RoomName}</p>
-                <p>${message.groupId}</p>
-                <small class="timestamp">Received: ${new Date(message.createdAt).toLocaleString()}</small>
+                <p>${data.RoomName}</p>
+                <p>${data.groupId}</p>
+                <small class="timestamp">Received: ${new Date(data.createdAt).toLocaleString()}</small>
               </div>
               <div class="actions">
-                <button class="agree-btn" onclick="handleAgree('${message.objectId}')">
+                <button class="agree-btn" onclick="handleAgree('${data.objectId}')">
                   <i class="bi bi-check-lg"></i>
                 </button>
-                <button class="disagree-btn" onclick="updateStatus('${message.objectId}')">
+                <button class="disagree-btn" onclick="updateStatus('${data.objectId}')">
                   <i class="bi bi-x-lg"></i>
                 </button>
-                <button class="cancel-btn" onclick="updateStatus('${message.objectId}')">
+                <button class="cancel-btn" onclick="updateStatus('${data.objectId}')">
                   <i class="bi bi-x-circle"></i>
                 </button>
               </div>
@@ -206,36 +207,28 @@
         messagesContainer.innerHTML = '<p class="no-messages">Error fetching messages. Please try again later.</p>';
       });
     }
-    
 
-    // Handle agree action
     function handleAgree(messageId) {
-      const query = Bmob.Query("userNotice");
+      const query = new AV.Query("userNotice");
       query.get(messageId).then(message => {
-        const groupId = message.groupId;
-        const fromUserId = message.fromUserId;
+        const data = message.toJSON();
+        const groupQuery = new AV.Query("chatRoom");
 
-        // Fetch the group chat details
-        const groupQuery = Bmob.Query("chatRoom");
-        return groupQuery.get(groupId).then(group => {
-          let members = group.RoomMember || []; // Retrieve current member list or initialize an empty array
-          
-          // Check if the user is already a member
-          if (!members.includes(fromUserId)) {
-            members.push(fromUserId); // Add the new member
+        return groupQuery.get(data.groupId).then(group => {
+          let members = group.get("RoomMember") || [];
+
+          if (!members.includes(data.fromUserId)) {
+            members.push(data.fromUserId);
           }
 
           group.set("RoomMember", members);
-          group.save();
-          message.set("status", true); 
-
-          return message.save(); // Update the member list
-
+          return group.save();
         }).then(() => {
-          console.log(`User ${fromUserId} added to group ${groupId}`);
+          message.set("status", true);
+          return message.save();
+        }).then(() => {
           alert('User successfully added to the group.');
-          fadeOutMessage(messageId); 
-          // Hide the message after successful addition
+          fadeOutMessage(messageId);
         });
       }).catch(error => {
         console.error("Error adding user to the group:", error);
@@ -243,15 +236,11 @@
       });
     }
 
-
-    // Update status in the database and hide the message
     function updateStatus(messageId) {
-      const query = Bmob.Query("userNotice");
+      const query = new AV.Query("userNotice");
       query.get(messageId).then(message => {
-        message.set("status", true); // Update status to true
-        message.save()
-        fetchMessages()
-        return ;
+        message.set("status", true);
+        return message.save();
       }).then(() => {
         fadeOutMessage(messageId);
       }).catch(error => {
@@ -259,16 +248,14 @@
       });
     }
 
-    // Fade out and hide the message
     function fadeOutMessage(messageId) {
       const messageCard = document.getElementById(`message-${messageId}`);
       messageCard.classList.add('fade-out');
       setTimeout(() => {
         messageCard.style.display = 'none';
-      }, 500); // Match CSS transition duration
+      }, 500);
     }
 
-    // Go back function
     function goBack() {
       window.location.href = `home-page.html?userId=${userId}&username=${username}`;
     }
