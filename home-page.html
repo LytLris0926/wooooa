@@ -452,12 +452,17 @@
       }
     }
 
+    var chatRoomHost = "";
+
+
     function searchGroup() {
       const groupId = document.getElementById('searchGroupName').value;
       const query = new AV.Query("chatRoom");
       query.get(groupId).then(res => {
         const searchResults = document.getElementById('searchResults');
         searchResults.innerHTML = '';
+
+        chatRoomHost = res.get('RoomHost');
         
         const groupItem = document.createElement('li');
         groupItem.classList.add('list-group-item');
@@ -480,8 +485,12 @@
       request.set("fromUserId", userId);
       request.set("fromUserName", username);
       request.set("groupId", groupId);
+      request.set("toUser", chatRoomHost);
       request.set("RoomName", groupName);
       request.set("status", false);
+      request.set("noticeType", 'request');
+      //上述‘request’为一个类型：申请
+
 
       request.save().then(res => {
         console.log(res);

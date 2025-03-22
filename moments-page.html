@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap 5 Masonry Cards</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .masonry-grid {
+            column-count: 3;
+            column-gap: 1rem;
+        }
+        .card {
+            display: inline-block;
+            width: 100%;
+            margin-bottom: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .card img {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .title-container {
+            flex-grow: 1;
+            text-align: center;
+        }
+        .back-icon {
+            font-size: 1.8rem;
+            color: #000;
+            cursor: pointer;
+            transition: color 0.2s ease-in-out;
+        }
+        .back-icon:hover {
+            color: #333;
+        }
+        @media (max-width: 768px) {
+            .masonry-grid {
+                column-count: 2;
+            }
+        }
+        @media (max-width: 576px) {
+            .masonry-grid {
+                column-count: 1;
+            }
+        }
+        .comment-time {
+            font-size: 0.8em; /* Smaller font size */
+            color: #6c757d; /* Optional: a muted gray color */
+            text-align: right; /* Align time to the right */
+            margin-top: 5px; /* Adds some space between the comment and the time */
+        }
+
+
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+   <div class="d-flex justify-content-center mb-3 mt-4">
+        <i class="fa-solid fa-arrow-left back-icon" onclick="goToChatPage()" title="Back to Chat Room"></i>
+
+        <h3 class="text-center w-100">Moments</h3>
+        <button id="addCardBtn" class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addCardModal"><i class="fa-solid fa-plus"></i></button>
+    </div>
+
+
+    <div class="masonry-grid" id="masonryGrid">
+        <!-- Cards will be dynamically added here -->
+    </div>
+</div>
+
+<div class="modal fade" id="addCardModal" tabindex="-1" aria-labelledby="addCardModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCardModalLabel">Add New Card</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="cardForm">
+                    <div class="mb-3">
+                        <label for="cardTitle" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="cardTitle" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cardText" class="form-label">Description</label>
+                        <textarea class="form-control" id="cardText" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="cardTitle" class="form-label">imageURL</label>
+                        <input type="text" class="form-control" id="imageURL" required>
+                    </div>
+                    <button type="button" class="btn btn-dark" onclick="addNewCard()">Send</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Initialize LeanCloud
+    AV.init({
+        appId: "ukCMrVVZEvwIIm0s3VhiFEOP-gzGzoHsz",
+        appKey: "HGRJgdvbtUmxQRiJcMI6YgGD",
+        serverURLs: "https://ukcmrvvz.lc-cn-n1-shared.com"
+    });
+
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("userId");
+    const username = params.get("username");
+    const groupName = params.get("groupName");
+    const groupId = params.get("groupId");
+
+    function goToChatPage() {
+        window.location.href = `chat-page.html?userId=${userId}&username=${username}&groupId=${groupId}&groupName=${groupName}`;
+    }
+
+    function addNewCard() {
+        let title = document.getElementById("cardTitle").value;
+        let content = document.getElementById("cardText").value;
+        let imageURL = document.getElementById("imageURL").value;
+        let grid = document.getElementById("masonryGrid");
+
+        const Moments = AV.Object.extend("groupMoments");
+        const moment = new Moments();
+
+        moment.set("title", title);
+        moment.set("content", content);
+        moment.set("fromUserId", userId);
+        moment.set("fromUserName", username);
+        moment.set("groupId", groupId);
+        moment.set("imageURL", imageURL);
+
+
+        console.log('Saving to database...');
+        
+        moment.save().then(
+          (m) => {
+            console.log(`✅ Saved successfully. Object ID: ${m.id}`);
+            let imgSrc = m.get("imageUrl") || "https://picsum.photos/300/220"; // Default if no image
+            addCardToGrid(m.id, title, content, username, userId, imgSrc);
+
+            document.getElementById("cardForm").reset();
+            let myModal = bootstrap.Modal.getInstance(document.getElementById('addCardModal'));
+            myModal.hide();
+          },
+          (error) => {
+            console.error("❌ Error saving card:", error);
+            alert("Error saving card. Please try again.");
+          }
+        );
+    }
+
+    function fetchAllCards() {
+        const Moments = AV.Object.extend("groupMoments");
+        const query = new AV.Query(Moments);
+        query.equalTo("groupId", groupId);
+        query.descending("createdAt");
+
+        query.find().then(
+          (results) => {
+            console.log(`📌 Fetched ${results.length} cards.`);
+            results.forEach((m) => {
+                let title = m.get("title");
+                let content = m.get("content");
+                let fromUserId = m.get("fromUserId");
+                let fromUserName = m.get("fromUserName");
+                let createdAt = m.get("createdAt");
+                let imgSrc = m.get("imageURL") || "https://picsum.photos/300/220"; // Default if no image
+                addCardToGrid(m.id, title, content, fromUserName, fromUserId, imgSrc, createdAt);
+            });
+          },
+          (error) => {
+            console.error("❌ Error fetching cards:", error);
+          }
+        );
+    }
+
+    // function addCardToGrid(id, title, content, username, userId, imgSrc, createdAt, likes = 0, comments = []) {
+    //     let grid = document.getElementById("masonryGrid");
+
+    //     let newCard = document.createElement("div");
+    //     newCard.classList.add("card");
+    //     newCard.setAttribute("data-id", id);
+
+    //     newCard.innerHTML = `
+    //         <img class="card-img-top" src="${imgSrc}" alt="Card image">
+    //         <div class="card-body">
+    //             <h5 class="card-title">${title}</h5>
+    //             <p class="card-text">${content}</p>
+    //             <hr>
+    //             <p class="text-muted"><i class="fa-solid fa-user"></i> ${username}</p>
+    //             <p class="text-muted"><i class="fa-solid fa-clock"></i> ${createdAt}</p>
+    //             <hr>
+    //             <div class="d-flex justify-content-between align-items-center">
+    //                 <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
+    //                     <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
+    //                 </button>
+    //             </div>
+
+    //             <!-- Comments Section -->
+    //             <div class="comments mt-2" id="comments-${id}">
+    //                 ${comments.slice(-3).map(comment => `<p class="comment text-muted small"><i class="fa-solid fa-comment"></i> ${comment}</p>`).join("")}
+    //             </div>
+
+    //             <!-- Comment Input -->
+    //             <div class="mt-2">
+    //                 <input type="text" class="form-control comment-input" id="comment-input-${id}" placeholder="Write a comment...">
+    //                 <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
+    //             </div>
+    //         </div>
+    //     `;
+
+    //     grid.appendChild(newCard);
+    // }
+    // function addCardToGrid(id, title, content, username, userId, imgSrc, createdAt, likes = 0) {
+    //     let grid = document.getElementById("masonryGrid");
+
+    //     let newCard = document.createElement("div");
+    //     newCard.classList.add("card");
+    //     newCard.setAttribute("data-id", id);
+
+    //     newCard.innerHTML = `
+    //         <img class="card-img-top" src="${imgSrc}" alt="Card image">
+    //         <div class="card-body">
+    //             <h5 class="card-title">${title}</h5>
+    //             <p class="card-text">${content}</p>
+    //             <hr>
+    //             <p class="text-muted"><i class="fa-solid fa-user"></i> <b>${username}</b></p>
+
+    //             <p class="text-muted small"><i class="fa-solid fa-clock"></i> ${createdAt}</p>
+    //             <hr>
+    //             <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
+    //                 <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
+    //             </button>
+
+    //             <div class="comments mt-2" id="comments-${id}"><p class="text-muted small">Loading comments...</p></div>
+
+    //             <div class="mt-2">
+    //                 <input type="text" class="form-control" id="comment-input-${id}" placeholder="Write a comment...">
+    //                 <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
+    //             </div>
+    //         </div>
+    //     `;
+
+    //     grid.appendChild(newCard);
+    //     fetchComments(id); // Fetch comments when card is added
+    // }
+
+    function formatDateTime(timestamp) {
+        let date = new Date(timestamp);
+        return date.toLocaleString("en-US", { 
+            month: "short", 
+            day: "numeric", 
+            hour: "2-digit", 
+            minute: "2-digit", 
+            hour12: false 
+        }); 
+        // Example output: "Mar 1, 14:30"
+    }
+
+    function addCardToGrid(id, title, content, username, userId, imgSrc, createdAt, likes = 0) {
+        let grid = document.getElementById("masonryGrid");
+
+        let newCard = document.createElement("div");
+        newCard.classList.add("card");
+        newCard.setAttribute("data-id", id);
+
+        newCard.innerHTML = `
+            <img class="card-img-top" src="${imgSrc}" alt="Card image">
+            <div class="card-body">
+                <h5 class="card-title">${title}</h5>
+                <p class="card-text">${content}</p>
+                <hr>
+                <p class="text-muted"><i class="fa-solid fa-user"></i> <b>${username}</b></p>
+                <p class="text-muted small"><i class="fa-solid fa-clock"></i> ${formatDateTime(createdAt)}</p>
+                <hr>
+                <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
+                    <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
+                </button>
+
+                <div class="comments mt-2" id="comments-${id}"><p class="text-muted small">Loading comments...</p></div>
+
+                <div class="mt-2">
+                    <input type="text" class="form-control" id="comment-input-${id}" placeholder="Write a comment...">
+                    <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
+                </div>
+            </div>
+        `;
+
+        grid.appendChild(newCard);
+        fetchComments(id);
+    }
+
+
+    function likeCard(cardId) {
+        let card = document.querySelector(`[data-id='${cardId}']`);
+        let likeCountSpan = card.querySelector(".like-count");
+
+        let currentLikes = parseInt(likeCountSpan.innerText);
+        let newLikes = currentLikes + 1;
+        likeCountSpan.innerText = newLikes;
+
+        // Fetch the moment from LeanCloud
+        const query = new AV.Query("groupMoments");
+        query.get(cardId).then((moment) => {
+            moment.increment("likes", 1);
+            moment.save();
+
+            // Get the owner's userId
+            let ownerId = moment.get("fromUserId");
+
+            if (ownerId) {
+                // Send a notification message to "notices" class
+                const Notice = AV.Object.extend("userNotice");
+                const notice = new Notice();
+                notice.set("toUser", ownerId);
+                notice.set("fromUserId", userId);
+                notice.set("fromUserName", username);
+                notice.set("momentId", cardId);
+                notice.set("noticeType", "like");
+                notice.set("groupId", groupId);
+                notice.set("RoomName", groupName);
+                notice.set("status", false);
+
+                
+                notice.save().then(() => {
+                    console.log("📩 Notice sent to the notice-page.");
+                }).catch(console.error);
+
+                // Increment "number" field in owner's database
+                const UserQuery = new AV.Query("_User");
+                UserQuery.get(ownerId).then((user) => {
+                    user.increment("number", 1);
+                    user.save().then(() => {
+                        console.log("🔢 'number' field updated for the owner.");
+                    });
+                }).catch(console.error);
+            }
+        }).catch(console.error);
+    }
+
+
+    function commentOnCard(cardId) {
+        let commentInput = document.getElementById(`comment-input-${cardId}`);
+        let commentText = commentInput.value.trim();
+        if (!commentText) return;
+
+        let commentSection = document.getElementById(`comments-${cardId}`);
+
+        // Create new comment element
+        let newComment = document.createElement("p");
+        newComment.classList.add("text-muted", "small");
+        newComment.innerHTML = `<i class="fa-solid fa-comment"></i> ${commentText}`;
+
+        // Insert the new comment at the top
+        commentSection.prepend(newComment);
+
+        // Clear input field
+        commentInput.value = "";
+
+        // Save comment in LeanCloud under "momentComments"
+        const MomentComments = AV.Object.extend("momentComments");
+        const comment = new MomentComments();
+
+        comment.set("momentId", cardId);
+        comment.set("comment", commentText);
+        comment.set("fromUserId", userId);
+        comment.set("fromUserName", username);
+        comment.set("groupId", groupId);
+
+
+        comment.save().then(() => {
+            console.log("✅ Comment saved successfully in 'momentComments'.");
+        }).catch(console.error);
+    }
+
+    function formatDateTime(timestamp) {
+        let date = new Date(timestamp);
+        return date.toLocaleString("en-US", { 
+            month: "short", 
+            day: "numeric", 
+            hour: "2-digit", 
+            minute: "2-digit", 
+            hour12: false 
+        }); 
+        // Example output: "Mar 1, 14:30"
+    }
+
+    function fetchComments(momentId) {
+        const MomentComments = AV.Object.extend("momentComments");
+        const query = new AV.Query(MomentComments);
+        query.equalTo("momentId", momentId);
+        query.ascending("createdAt"); // Fetch in chronological order
+
+        query.find().then((comments) => {
+            let commentSection = document.getElementById(`comments-${momentId}`);
+            commentSection.innerHTML = ""; // Clear old comments
+
+            if (comments.length === 0) {
+                commentSection.innerHTML = `<p class="text-muted small">No comments yet.</p>`;
+                return;
+            }
+
+            comments.forEach((comment) => {
+                let commentText = comment.get("comment");
+                let fromUserName = comment.get("fromUserName");
+                let createdAt = formatDateTime(comment.createdAt);
+
+                let commentElement = document.createElement("p");
+                commentElement.classList.add("text-muted", "small", "comment");
+
+                // Comment text and timestamp in separate lines
+                commentElement.innerHTML = `
+                    <i class="fa-solid fa-comment"></i> <b>${fromUserName}:</b> ${commentText}
+                    <div class="comment-time small">${createdAt}</div>
+                `;
+
+                commentSection.appendChild(commentElement);
+            });
+        }).catch(console.error);
+    }
+
+
+    function showMoreComments(cardId) {
+        let card = document.querySelector(`[data-id='${cardId}']`);
+        let hiddenComments = card.querySelectorAll(".comment.hidden");
+
+        hiddenComments.forEach(comment => comment.classList.remove("hidden"));
+
+        // Hide the "More Comments" button after showing all comments
+        card.querySelector("button.btn-link").style.display = "none";
+    }
+
+
+
+    document.addEventListener("DOMContentLoaded", fetchAllCards);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

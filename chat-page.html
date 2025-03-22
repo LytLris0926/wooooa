@@ -325,6 +325,10 @@
                  style="cursor: pointer; font-size: 1.5rem; position: absolute; right: 15px; top: 50%; transform: translateY(-50%);" 
                  onclick="showGroups()" 
                  title="Other Groups"></i>
+
+               <i class="fas fa-camera" style="cursor: pointer; font-size: 1.5rem; position: absolute; right: 95px; top: 50%; transform: translateY(-50%);" 
+                 onclick="goToMomentsPage()" 
+                 title="Go to Moments Page"></i>
             </div>
 
           <div class="card-body">
@@ -816,6 +820,17 @@
       closeRoomMembersModal();
     }
   };
+
+  function goToMomentsPage() {
+    // Assume you have the following variables set (these could be dynamic, depending on your application)
+    // Replace with the actual chatroom name
+
+    // Construct the URL with query parameters
+    const momentsPageUrl = `moments-page.html?userId=${userId}&username=${username}&groupId=${groupId}&groupName=${groupName}`;
+
+    // Redirect to the moments page
+    window.location.href = momentsPageUrl;
+  }
 
 
 

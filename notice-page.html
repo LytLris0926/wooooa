@@ -142,10 +142,11 @@
   <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.15.0/dist/av-min.js"></script>
   <script>
     // Initialize LeanCloud
+
     AV.init({
-      appId: "5fae1458dd7d8bd4b498fe557bda8a01",
-      appKey: "9e76c5623c742c04fe0481b025d1546f",
-      serverURLs: "https://5fae1458.lc-cn-n1-shared.com"
+      appId: "ukCMrVVZEvwIIm0s3VhiFEOP-gzGzoHsz",
+      appKey: "HGRJgdvbtUmxQRiJcMI6YgGD",
+      serverURLs: "https://ukcmrvvz.lc-cn-n1-shared.com"
     });
 
     const userId = new URLSearchParams(window.location.search).get('userId');
@@ -161,7 +162,10 @@
     fetchMessages();
 
     function fetchMessages() {
+
       const query = new AV.Query('userNotice');
+
+
       query.equalTo('toUser', userId);
       query.equalTo('status', false);
       query.descending('createdAt');
@@ -173,34 +177,80 @@
         }
 
         messages.forEach(message => {
-          const data = message.toJSON();
-          const messageCard = document.createElement('div');
-          messageCard.classList.add('col-md-6');
-          messageCard.innerHTML = `
-            <div class="message-card" id="message-${data.objectId}">
-              <div class="card-header">
-                From: ${data.fromUserName} (ID: ${data.fromUserId})
+
+          if (message.get('noticeType') == 'request') {
+            const data = message.toJSON();
+            const messageCard = document.createElement('div');
+            messageCard.classList.add('col-md-6');
+            messageCard.innerHTML = `
+              <div class="card bg-light border-0 shadow-sm rounded p-3 mb-3" id="message-${data.objectId}">
+                  <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center">
+                          <h6 class="mb-1 text-dark">
+                              <i class="fa-solid fa-user text-primary"></i> <b>${data.fromUserName}</b>
+                          </h6>
+                          <small class="text-muted">${new Date(data.createdAt).toLocaleString()}</small>
+                      </div>
+                      <p class="text-muted small">UserID: <span class="text-dark">${data.fromUserId}</span></p>
+                      <hr class="my-2">
+                      <p class="mb-1 text-dark">
+                          <i class="fa-solid fa-user-plus text-info"></i> <b>请求加入群组:</b>
+                      </p>
+                      <p class="text-muted small">📌 群组: <b>${data.RoomName}</b></p>
+                      <p class="text-muted small">🔗 Group ID: <span class="text-dark">${data.groupId}</span></p>
+                      <div class="d-flex justify-content-end mt-2">
+                          <button class="btn btn-success btn-sm me-2" onclick="handleAgree('${data.objectId}')">
+                              <i class="fa-solid fa-check"></i> 同意
+                          </button>
+                          <button class="btn btn-outline-danger btn-sm me-2" onclick="updateStatus('${data.objectId}')">
+                              <i class="fa-solid fa-xmark"></i> 拒绝
+                          </button>
+                          <button class="btn btn-secondary btn-sm" onclick="ignoreRequest('${data.objectId}')">
+                              <i class="fa-solid fa-eye-slash"></i> 忽略
+                          </button>
+                      </div>
+                  </div>
               </div>
-              <div class="card-body">
-                <p>请求入群:</p>
-                <p>${data.RoomName}</p>
-                <p>${data.groupId}</p>
-                <small class="timestamp">Received: ${new Date(data.createdAt).toLocaleString()}</small>
-              </div>
-              <div class="actions">
-                <button class="agree-btn" onclick="handleAgree('${data.objectId}')">
-                  <i class="bi bi-check-lg"></i>
-                </button>
-                <button class="disagree-btn" onclick="updateStatus('${data.objectId}')">
-                  <i class="bi bi-x-lg"></i>
-                </button>
-                <button class="cancel-btn" onclick="updateStatus('${data.objectId}')">
-                  <i class="bi bi-x-circle"></i>
-                </button>
-              </div>
-            </div>
           `;
-          messagesContainer.appendChild(messageCard);
+
+
+            messagesContainer.appendChild(messageCard);
+          }
+          if (message.get('noticeType') == 'like') {
+            const data = message.toJSON();
+            const messageCard = document.createElement('div');
+            messageCard.classList.add('col-md-6');
+            messageCard.innerHTML = `
+              <div class="card bg-white border-0 shadow-sm rounded p-3 mb-3" id="message-${data.objectId}">
+                  <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-center">
+                          <h6 class="mb-1 text-dark">
+                              <i class="fa-solid fa-user text-primary"></i> <b>${data.fromUserName}</b>
+                          </h6>
+                          <small class="text-muted">${new Date(data.createdAt).toLocaleString()}</small>
+                      </div>
+                      <p class="text-muted small"> UserID: <span class="text-dark">${data.fromUserId}</span></p>
+                      <hr class="my-2">
+                      <p class="mb-1 text-dark">
+                          <i class="fa-solid fa-thumbs-up text-success"></i> 该用户点赞了你的 <b>Moment</b>
+                      </p>
+                      <p class="text-muted small">🆔 Moment ID: <span class="text-dark">${data.momentId}</span></p>
+                      <p class="text-muted small">📌 群组: <b>${data.RoomName}</b> (${data.groupId})</p>
+                      <p class="text-muted small">🔗 Group ID: <span class="text-dark">${data.groupId}</span></p>
+                      <div class="d-flex justify-content-end mt-2">
+                          <button class="btn btn-outline-danger btn-sm" onclick="updateStatus('${data.objectId}')">
+                              <i class="fa-solid fa-xmark"></i> 已读
+                          </button>
+                      </div>
+                  </div>
+              </div>
+          `;
+
+
+
+            messagesContainer.appendChild(messageCard);
+          }
+          
         });
       }).catch(error => {
         console.error("Error fetching messages:", error);
