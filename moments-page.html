@@ -64,6 +64,9 @@
             text-align: right; /* Align time to the right */
             margin-top: 5px; /* Adds some space between the comment and the time */
         }
+        .hidden {
+            display: none !important;
+        }
 
 
 
@@ -283,27 +286,48 @@
         newCard.classList.add("card");
         newCard.setAttribute("data-id", id);
 
-        newCard.innerHTML = `
-            <img class="card-img-top" src="${imgSrc}" alt="Card image">
-            <div class="card-body">
-                <h5 class="card-title">${title}</h5>
-                <p class="card-text">${content}</p>
-                <hr>
-                <p class="text-muted"><i class="fa-solid fa-user"></i> <b>${username}</b></p>
-                <p class="text-muted small"><i class="fa-solid fa-clock"></i> ${formatDateTime(createdAt)}</p>
-                <hr>
-                <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
-                    <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
-                </button>
+        const query = new AV.Query("groupMoments");
 
-                <div class="comments mt-2" id="comments-${id}"><p class="text-muted small">Loading comments...</p></div>
+        query.find().then((moments) => {
+            moments.forEach((moment) => {
+                let id = moment.id;
+                let title = moment.get("title");
+                let content = moment.get("content");
+                let username = moment.get("fromUserName");
+                let imgSrc = moment.get("image") || "default.jpg";
+                let createdAt = moment.get("createdAt");
+                let likes = moment.get("likes") || 0; // Get likes from DB
 
-                <div class="mt-2">
-                    <input type="text" class="form-control" id="comment-input-${id}" placeholder="Write a comment...">
-                    <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
-                </div>
-            </div>
-        `;
+                let newCard = document.createElement("div");
+                newCard.classList.add("card", "mb-3");
+                newCard.setAttribute("data-id", id);
+
+                newCard.innerHTML = `
+                    <img class="card-img-top" src="${imgSrc}" alt="Card image">
+                    <div class="card-body">
+                        <h5 class="card-title">${title}</h5>
+                        <p class="card-text">${content}</p>
+                        <hr>
+                        <p class="text-muted"><i class="fa-solid fa-user"></i> <b>${username}</b></p>
+                        <p class="text-muted small"><i class="fa-solid fa-clock"></i> ${formatDateTime(createdAt)}</p>
+                        <hr>
+                        <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
+                            <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
+                        </button>
+
+                        <div class="comments mt-2" id="comments-${id}"><p class="text-muted small">Loading comments...</p></div>
+
+                        <div class="mt-2">
+                            <input type="text" class="form-control" id="comment-input-${id}" placeholder="Write a comment...">
+                            <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
+                        </div>
+                    </div>
+                `;
+
+                document.getElementById("moments-container").appendChild(newCard);
+            });
+        }).catch(console.error);
+
 
         grid.appendChild(newCard);
         fetchComments(id);
@@ -419,35 +443,91 @@
                 return;
             }
 
-            comments.forEach((comment) => {
+            let commentElements = [];
+
+            comments.forEach((comment, index) => {
+                console.log(index)
                 let commentText = comment.get("comment");
                 let fromUserName = comment.get("fromUserName");
                 let createdAt = formatDateTime(comment.createdAt);
 
-                let commentElement = document.createElement("p");
+                let commentElement = document.createElement("div");
                 commentElement.classList.add("text-muted", "small", "comment");
-
-                // Comment text and timestamp in separate lines
                 commentElement.innerHTML = `
                     <i class="fa-solid fa-comment"></i> <b>${fromUserName}:</b> ${commentText}
-                    <div class="comment-time small">${createdAt}</div>
+                    <div class="comment-time text-end small text-secondary">${createdAt}</div>
                 `;
 
+                // Hide comments beyond the first 3
+                if (index >= 3) {
+                    commentElement.classList.add("hidden");
+                }
+
+                commentElements.push(commentElement);
                 commentSection.appendChild(commentElement);
             });
+
+            // If more than 3 comments, add toggle button
+            if (comments.length > 3) {
+                let toggleButton = document.createElement("button");
+                toggleButton.classList.add("btn", "btn-sm", "btn-link", "text-primary", "toggle-comments-btn");
+                toggleButton.innerHTML = `<i class="fa-solid fa-angle-down"></i> Show All Comments`;
+                toggleButton.setAttribute("data-id", momentId);
+                toggleButton.setAttribute("data-expanded", "false");
+                toggleButton.onclick = () => toggleComments(momentId, toggleButton, commentElements);
+                commentSection.appendChild(toggleButton);
+            }
         }).catch(console.error);
     }
 
+    function toggleComments(momentId, button, commentElements) {
+        let isExpanded = button.getAttribute("data-expanded") === "true";
 
-    function showMoreComments(cardId) {
-        let card = document.querySelector(`[data-id='${cardId}']`);
-        let hiddenComments = card.querySelectorAll(".comment.hidden");
-
-        hiddenComments.forEach(comment => comment.classList.remove("hidden"));
-
-        // Hide the "More Comments" button after showing all comments
-        card.querySelector("button.btn-link").style.display = "none";
+        if (isExpanded) {
+            // Hide all except the first 3
+            commentElements.forEach((comment, index) => {
+                if (index >= 3) {
+                    comment.classList.add("hidden");
+                }
+            });
+            button.innerHTML = `<i class="fa-solid fa-angle-down"></i>`;
+            button.setAttribute("data-expanded", "false");
+        } else {
+            // Show all comments
+            commentElements.forEach(comment => comment.classList.remove("hidden"));
+            button.innerHTML = `<i class="fa-solid fa-angle-up"></i>`;
+            button.setAttribute("data-expanded", "true");
+        }
     }
+
+
+
+    // function showMoreComments(momentId, button) {
+    //     let commentSection = document.getElementById(`comments-${momentId}`);
+    //     let hiddenComments = commentSection.querySelectorAll(".comment.hidden");
+
+    //     hiddenComments.forEach(comment => comment.classList.remove("hidden"));
+
+    //     // Change button to "Show Less"
+    //     button.innerHTML = `<i class="fa-solid fa-angle-up"></i> Show Less`;
+    //     button.onclick = (e) => hideExtraComments(momentId, e.target);
+    // }
+
+    // function hideExtraComments(momentId, button) {
+    //     let commentSection = document.getElementById(`comments-${momentId}`);
+    //     let comments = commentSection.querySelectorAll(".comment");
+
+    //     // Hide all except the first 3 comments
+    //     comments.forEach((comment, index) => {
+    //         if (index >= 3) {
+    //             comment.classList.add("hidden");
+    //         }
+    //     });
+
+    //     // Change button back to "Show All"
+    //     button.innerHTML = `<i class="fa-solid fa-angle-down"></i> Show All Comments`;
+    //     button.onclick = (e) => showMoreComments(momentId, e.target);
+    // }
 
 
 
