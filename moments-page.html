@@ -157,9 +157,8 @@
         moment.save().then(
           (m) => {
             console.log(`✅ Saved successfully. Object ID: ${m.id}`);
-            let imgSrc = m.get("imageUrl") || "https://picsum.photos/300/220"; // Default if no image
+            let imgSrc = m.get("imageURL") || "https://picsum.photos/300/220"; // Default if no image
             addCardToGrid(m.id, title, content, username, userId, imgSrc);
-
             document.getElementById("cardForm").reset();
             let myModal = bootstrap.Modal.getInstance(document.getElementById('addCardModal'));
             myModal.hide();
@@ -187,6 +186,9 @@
                 let fromUserName = m.get("fromUserName");
                 let createdAt = m.get("createdAt");
                 let imgSrc = m.get("imageURL") || "https://picsum.photos/300/220"; // Default if no image
+
+                console.log('............')
+                console.log(imgSrc)
                 addCardToGrid(m.id, title, content, fromUserName, fromUserId, imgSrc, createdAt);
             });
           },
@@ -196,76 +198,6 @@
         );
     }
 
-    // function addCardToGrid(id, title, content, username, userId, imgSrc, createdAt, likes = 0, comments = []) {
-    //     let grid = document.getElementById("masonryGrid");
-
-    //     let newCard = document.createElement("div");
-    //     newCard.classList.add("card");
-    //     newCard.setAttribute("data-id", id);
-
-    //     newCard.innerHTML = `
-    //         <img class="card-img-top" src="${imgSrc}" alt="Card image">
-    //         <div class="card-body">
-    //             <h5 class="card-title">${title}</h5>
-    //             <p class="card-text">${content}</p>
-    //             <hr>
-    //             <p class="text-muted"><i class="fa-solid fa-user"></i> ${username}</p>
-    //             <p class="text-muted"><i class="fa-solid fa-clock"></i> ${createdAt}</p>
-    //             <hr>
-    //             <div class="d-flex justify-content-between align-items-center">
-    //                 <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
-    //                     <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
-    //                 </button>
-    //             </div>
-
-    //             <!-- Comments Section -->
-    //             <div class="comments mt-2" id="comments-${id}">
-    //                 ${comments.slice(-3).map(comment => `<p class="comment text-muted small"><i class="fa-solid fa-comment"></i> ${comment}</p>`).join("")}
-    //             </div>
-
-    //             <!-- Comment Input -->
-    //             <div class="mt-2">
-    //                 <input type="text" class="form-control comment-input" id="comment-input-${id}" placeholder="Write a comment...">
-    //                 <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
-    //             </div>
-    //         </div>
-    //     `;
-
-    //     grid.appendChild(newCard);
-    // }
-    // function addCardToGrid(id, title, content, username, userId, imgSrc, createdAt, likes = 0) {
-    //     let grid = document.getElementById("masonryGrid");
-
-    //     let newCard = document.createElement("div");
-    //     newCard.classList.add("card");
-    //     newCard.setAttribute("data-id", id);
-
-    //     newCard.innerHTML = `
-    //         <img class="card-img-top" src="${imgSrc}" alt="Card image">
-    //         <div class="card-body">
-    //             <h5 class="card-title">${title}</h5>
-    //             <p class="card-text">${content}</p>
-    //             <hr>
-    //             <p class="text-muted"><i class="fa-solid fa-user"></i> <b>${username}</b></p>
-
-    //             <p class="text-muted small"><i class="fa-solid fa-clock"></i> ${createdAt}</p>
-    //             <hr>
-    //             <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
-    //                 <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
-    //             </button>
-
-    //             <div class="comments mt-2" id="comments-${id}"><p class="text-muted small">Loading comments...</p></div>
-
-    //             <div class="mt-2">
-    //                 <input type="text" class="form-control" id="comment-input-${id}" placeholder="Write a comment...">
-    //                 <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
-    //             </div>
-    //         </div>
-    //     `;
-
-    //     grid.appendChild(newCard);
-    //     fetchComments(id); // Fetch comments when card is added
-    // }
 
     function formatDateTime(timestamp) {
         let date = new Date(timestamp);
@@ -286,48 +218,27 @@
         newCard.classList.add("card");
         newCard.setAttribute("data-id", id);
 
-        const query = new AV.Query("groupMoments");
+        newCard.innerHTML = `
+            <img class="card-img-top" src="${imgSrc}" alt="Card image">
+            <div class="card-body">
+                <h5 class="card-title">${title}</h5>
+                <p class="card-text">${content}</p>
+                <hr>
+                <p class="text-muted"><i class="fa-solid fa-user"></i> <b>${username}</b></p>
+                <p class="text-muted small"><i class="fa-solid fa-clock"></i> ${formatDateTime(createdAt)}</p>
+                <hr>
+                <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
+                    <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
+                </button>
 
-        query.find().then((moments) => {
-            moments.forEach((moment) => {
-                let id = moment.id;
-                let title = moment.get("title");
-                let content = moment.get("content");
-                let username = moment.get("fromUserName");
-                let imgSrc = moment.get("image") || "default.jpg";
-                let createdAt = moment.get("createdAt");
-                let likes = moment.get("likes") || 0; // Get likes from DB
+                <div class="comments mt-2" id="comments-${id}"><p class="text-muted small">Loading comments...</p></div>
 
-                let newCard = document.createElement("div");
-                newCard.classList.add("card", "mb-3");
-                newCard.setAttribute("data-id", id);
-
-                newCard.innerHTML = `
-                    <img class="card-img-top" src="${imgSrc}" alt="Card image">
-                    <div class="card-body">
-                        <h5 class="card-title">${title}</h5>
-                        <p class="card-text">${content}</p>
-                        <hr>
-                        <p class="text-muted"><i class="fa-solid fa-user"></i> <b>${username}</b></p>
-                        <p class="text-muted small"><i class="fa-solid fa-clock"></i> ${formatDateTime(createdAt)}</p>
-                        <hr>
-                        <button class="btn btn-outline-primary btn-sm like-btn" onclick="likeCard('${id}')">
-                            <i class="fa-solid fa-thumbs-up"></i> <span class="like-count">${likes}</span>
-                        </button>
-
-                        <div class="comments mt-2" id="comments-${id}"><p class="text-muted small">Loading comments...</p></div>
-
-                        <div class="mt-2">
-                            <input type="text" class="form-control" id="comment-input-${id}" placeholder="Write a comment...">
-                            <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
-                        </div>
-                    </div>
-                `;
-
-                document.getElementById("moments-container").appendChild(newCard);
-            });
-        }).catch(console.error);
-
+                <div class="mt-2">
+                    <input type="text" class="form-control" id="comment-input-${id}" placeholder="Write a comment...">
+                    <button class="btn btn-sm btn-dark mt-1" onclick="commentOnCard('${id}')">Send</button>
+                </div>
+            </div>
+        `;
 
         grid.appendChild(newCard);
         fetchComments(id);
