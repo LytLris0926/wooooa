@@ -171,6 +171,7 @@
 
             <!-- Submit Button -->
             <button type="button" class="btn" onclick="saveProfile()">Save</button>
+            <button class="btn btn-outline-danger" onclick="logout()">Logout</button>
           </form>
         </div>
       </div>
@@ -274,6 +275,21 @@
         imageGallery.appendChild(img);
       });
     });
+
+    function logout() {
+      console.log('....log out....')
+      window.location.href = "https://wooooa.com";
+      // AV.User.logOut().then(() => {
+      //     console.log("👋 Logged out successfully!");
+          
+      // }).catch((error) => {
+      //     console.error("❌ Logout failed:", error);
+      // });
+
+
+    }
+
+
 
 
   

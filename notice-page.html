@@ -298,6 +298,18 @@
       });
     }
 
+    function ignoreRequest(messageId) {
+      const query = new AV.Query("userNotice");
+      query.get(messageId).then(message => {
+        message.set("status", true);
+        return message.save();
+      }).then(() => {
+        fadeOutMessage(messageId);
+      }).catch(error => {
+        console.error("Error updating status:", error);
+      });
+    }
+
     function fadeOutMessage(messageId) {
       const messageCard = document.getElementById(`message-${messageId}`);
       messageCard.classList.add('fade-out');
