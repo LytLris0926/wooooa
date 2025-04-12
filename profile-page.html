@@ -50,15 +50,11 @@
       border-radius: 30px;
       padding: 12px 20px;
       font-size: 1.1rem;
-      background-color: #333333;
       color: #ffffff;
       border: none;
       width: 100%;
     }
 
-    .btn:hover {
-      background-color: #444444;
-    }
 
     .profile-photo {
       text-align: center;
@@ -169,8 +165,13 @@
               <textarea class="form-control" id="about" rows="3" placeholder="Tell us about yourself"></textarea>
             </div>
 
-            <button type="button" class="btn" onclick="saveProfile()">Save</button>
-            <button type="button" class="btn btn-outline-danger" onclick="logout()">Logout</button>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-primary" onclick="saveProfile()">Save</button>
+                <button type="button" class="btn btn-danger" onclick="logout()">Logout</button>
+
+            </div>
+
+
 
         </div>
       </div>
