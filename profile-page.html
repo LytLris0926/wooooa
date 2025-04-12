@@ -129,7 +129,7 @@
           Profile Page
         </div>
         <div class="card-body">
-          <form>
+
             <!-- Profile Photo -->
             <!-- Profile Photo -->
             <div class="profile-photo">
@@ -169,10 +169,9 @@
               <textarea class="form-control" id="about" rows="3" placeholder="Tell us about yourself"></textarea>
             </div>
 
-            <!-- Submit Button -->
             <button type="button" class="btn" onclick="saveProfile()">Save</button>
-            <button class="btn btn-outline-danger" onclick="logout()">Logout</button>
-          </form>
+            <button type="button" class="btn btn-outline-danger" onclick="logout()">Logout</button>
+
         </div>
       </div>
     </div>
@@ -278,13 +277,14 @@
 
     function logout() {
       console.log('....log out....')
-      window.location.href = "https://wooooa.com";
-      // AV.User.logOut().then(() => {
-      //     console.log("👋 Logged out successfully!");
+      
+      AV.User.logOut().then(() => {
+          console.log("👋 Logged out successfully!");
+          window.location.href = "https://wooooa.com";
           
-      // }).catch((error) => {
-      //     console.error("❌ Logout failed:", error);
-      // });
+      }).catch((error) => {
+          console.error("❌ Logout failed:", error);
+      });
 
 
     }
