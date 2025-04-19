@@ -14,9 +14,9 @@
 
   <style>
     body {
-      background-color: #ffffff;
+      background-color: #F1F8FF; /* Soft Pastel Blue */
       font-family: 'Roboto', sans-serif;
-      color: #333333;
+      color: #4A4A4A; /* Dark Gray for text */
     }
 
     .card {
@@ -24,12 +24,12 @@
       border: none;
       border-radius: 15px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      background-color: #f5f5f5;
+      background-color: #FFFFFF; /* White for a clean, soft look */
       position: relative;
     }
 
     .card-header {
-      background-color: #333333;
+      background-color: #00A9FF; /* Deeper Blue */
       color: #ffffff;
       font-size: 1.4rem;
       font-weight: bold;
@@ -49,7 +49,7 @@
     }
 
     .settings-icon:hover {
-      color: #cccccc;
+      color: #F6D1B3; /* Soft Peach */
     }
 
     .profile-photo {
@@ -62,7 +62,7 @@
       height: 120px;
       border-radius: 50%;
       object-fit: cover;
-      border: 3px solid #cccccc;
+      border: 3px solid #F6D1B3; /* Soft Peach border */
     }
 
     .username {
@@ -77,11 +77,11 @@
     }
 
     .chat-list {
-      margin-top: 5px; /* Further reduced space to bring chats closer */
+      margin-top: 5px;
     }
 
     .chat-item {
-      background-color: #f9f9f9;
+      background-color: #F9FAFB; /* Soft Off-White */
       padding: 10px;
       margin: 5px 0;
       border-radius: 10px;
@@ -90,7 +90,7 @@
     }
 
     .chat-item:hover {
-      background-color: #f1f1f1;
+      background-color: #F1F8FF; /* Soft Pastel Blue */
     }
 
     .chat-item .name {
@@ -99,29 +99,29 @@
 
     .chat-item .last-message {
       font-size: 0.9rem;
-      color: #777;
+      color: #8D8D8D; /* Light Gray for less important text */
     }
 
     .chat-item .timestamp {
       font-size: 0.8rem;
-      color: #888;
+      color: #B0B0B0; /* Light Gray */
       text-align: right;
     }
 
     .section-header {
       font-size: 1.2rem;
-      margin-top: 0; /* No margin-top */
+      margin-top: 0;
       font-weight: bold;
       display: inline-block;
     }
 
     .create-group-btn {
       display: inline-block;
-      margin-left: 5px; /* Reduced margin to move button even closer */
+      margin-left: 5px;
       padding: 0;
-      font-size: 1rem; /* Smaller font size for the button */
+      font-size: 1rem;
       background-color: transparent;
-      color: #000000;
+      color: #00A9FF; /* Deeper Blue */
       border: none;
       border-radius: 50%;
       cursor: pointer;
@@ -134,42 +134,29 @@
     }
 
     .create-group-btn i {
-      font-size: 1.2rem; /* Smaller icon size */
+      font-size: 1.2rem;
     }
 
     .create-group-btn:focus {
       outline: none;
     }
 
-    /* Modal Styling */
     .modal-content {
       border-radius: 15px;
     }
 
     .modal-header {
-      background-color: #333333;
+      background-color: #00A9FF; /* Deeper Blue */
       color: white;
     }
 
     .modal-footer button {
-      background-color: #333333;
+      background-color: #00A9FF;
       color: white;
     }
 
-    /* Change the close button (X) to white */
     .btn-close {
       filter: invert(1);
-    }
-
-    .card-header {
-      background-color: #333333;
-      color: #ffffff;
-      font-size: 1.4rem;
-      font-weight: bold;
-      text-align: center;
-      border-top-left-radius: 15px;
-      border-top-right-radius: 15px;
-      padding: 15px;
     }
 
     .search-icon {
@@ -183,18 +170,18 @@
     }
 
     .search-icon:hover {
-      color: #cccccc;
+      color: #F6D1B3; /* Soft Peach */
     }
 
     .circle-icon {
-      width: 20px; /* Smaller size */
+      width: 20px;
       height: 20px;
-      background-color: black;
+      background-color: #00A9FF; /* Deeper Blue */
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      margin-left: auto; /* Push to the right */
+      margin-left: auto;
       cursor: pointer;
       transition: transform 0.3s ease;
     }
@@ -202,7 +189,7 @@
     .circle-icon::before {
       content: '+';
       color: white;
-      font-size: 0.9rem; /* Adjust font size */
+      font-size: 0.9rem;
       font-weight: bold;
     }
 
@@ -213,7 +200,7 @@
     .message-icon {
       position: absolute;
       top: 12px;
-      left: 50px; /* Adjust this based on spacing needs */
+      left: 50px;
       font-size: 1.5rem;
       color: #ffffff;
       cursor: pointer;
@@ -221,45 +208,27 @@
     }
 
     .message-icon:hover {
-      color: #cccccc;
+      color: #F6D1B3; /* Soft Peach */
     }
 
-
-
     .popup-notification {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #28a745;
-      color: white;
-      padding: 15px 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      font-size: 1rem;
-      font-weight: 500;
-      text-align: center;
-      z-index: 1050;
-      opacity: 1;
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      width: 300px;
+      background-color: #00A9FF; /* Deeper Blue */
     }
 
     .popup-notification.error {
-      background-color: #dc3545;
+      background-color: #F6D1B3; /* Soft Peach */
     }
 
-    .popup-notification .popup-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
+    #message-dot {
+      width: 10px;
+      height: 10px;
+      background-color: #F6D1B3; /* Soft Peach */
+      border-radius: 50%;
+      position: absolute;
+      top: 8px;
+      left: 64px;
+      z-index: 10;
     }
-
-    .popup-notification.fade-out {
-      opacity: 0;
-      transform: translate(-50%, -60%);
-    }
-
 
 
 
@@ -292,7 +261,10 @@
         <div class="card">
           <div class="card-header">
             <i class="bi bi-search search-icon" data-bs-toggle="modal" data-bs-target="#searchGroupModal"></i>
-            <i class="bi bi-envelope message-icon" onclick="goToMessages()"></i>
+            <i class="bi bi-envelope message-icon" onclick="goToMessages()">
+              <span id="message-dot" class="position-absolute bg-danger rounded-circle d-none"
+      style="top: 2px; right: -6px; width: 10px; height: 10px; background-color: #FF0000;"></span>
+            </i>
             User HomePage
             <!-- Settings Icon -->
              <!-- Search Group Button -->
@@ -548,6 +520,25 @@
 
     }
 
+    function checkUnreadMessages() {
+      const query = new AV.Query('userNotice');
+      query.equalTo('toUser', userId);
+      query.equalTo('status', false); // Only unread messages
+
+      query.count().then(count => {
+        const dot = document.getElementById('message-dot');
+        if (count > 0) {
+          dot.classList.remove('d-none');
+        } else {
+          dot.classList.add('d-none');
+        }
+      }).catch(console.error);
+    }
+
+    // Run on page load
+    checkUnreadMessages();
+
+
 
   </script>
 </body>
@@ -558,7 +549,7 @@
 <!-- 未完成任务：
       1、新的邮件要显示红点
       2、每个人只能点赞每条moment一次
-      3、要显示每条moment的点赞数 -->
+      3、要显示每条moment的点赞 -->
 
 
 
