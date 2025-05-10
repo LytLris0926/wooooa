@@ -1,58 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Messages</title>
   <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <!-- Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet"/>
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet"/>
   <style>
     body {
-      font-family: 'Roboto', sans-serif;
-      background-color: #ffffff;
-      color: #333;
+      background-color: #ffeef2;
+      font-family: 'Quicksand', sans-serif;
+      color: #333333;
+      margin: 0;
       padding: 20px;
     }
 
     .header {
       display: flex;
       align-items: center;
-      justify-content: flex-start;
-      background-color: #e6f7ff; /* Light blue background */
-      color: #00A9FF; /* Deeper Blue Text/Icon */
-      padding: 15px 20px;
-      border-radius: 10px;
-      margin-bottom: 20px;
+      background-color: #fff;
+      border-radius: 30px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      padding: 15px 25px;
+      margin-bottom: 30px;
+    }
+
+    .header .icon {
+      font-size: 1.6rem;
+      color: #d94d7b;
+      cursor: pointer;
+      margin-right: 15px;
+    }
+
+    .header .icon:hover {
+      color: #bf3b68;
     }
 
     .header h1 {
       font-size: 1.5rem;
+      font-weight: bold;
       margin: 0;
+      color: #d94d7b;
       flex-grow: 1;
       text-align: center;
-      color: #00A9FF; /* Title color */
-    }
-
-    .header .icon {
-      font-size: 1.8rem;
-      cursor: pointer;
-      transition: color 0.3s ease-in-out;
-      color: #00A9FF;
-    }
-
-    .header .icon:hover {
-      color: #008fd4; /* Slightly darker blue */
+      margin-right: 30px;
     }
 
     .message-card {
-      background-color: #00A9FF; /* Deeper Blue card background */
-      border: none;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-      margin-bottom: 15px;
+      background-color: #fff;
+      border-radius: 30px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
       overflow: hidden;
-      transition: transform 0.3s ease, box-shadow 0.3s ease, opacity 0.5s ease;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     }
 
     .message-card.fade-out {
@@ -62,69 +66,67 @@
     }
 
     .message-card .card-header {
-      background-color: #008fd4; /* Darker Blue Header */
-      padding: 10px 15px;
-      font-weight: bold;
+      background-color: #fcd6de;
+      padding: 12px 20px;
+      font-weight: 600;
       font-size: 1rem;
-      color: #ffffff;
+      color: #d94d7b;
     }
 
     .message-card .card-body {
-      padding: 15px;
-      text-align: right;
+      padding: 20px;
     }
 
     .message-card .card-body p {
-      margin-bottom: 10px;
       font-size: 1rem;
-      color: #ffffff;
+      color: #333333;
+      margin-bottom: 10px;
     }
 
-    .message-card .timestamp {
+    .timestamp {
       font-size: 0.9rem;
-      color: #d1ecff; /* Soft blue for timestamp */
+      color: #888888;
+      text-align: right;
     }
 
-    .message-card .actions {
+    .actions {
       display: flex;
       justify-content: flex-start;
-      margin-top: -10px;
-      padding-left: 10px;
+      padding: 0 20px 15px;
+      gap: 15px;
     }
 
-    .message-card .actions button {
+    .actions button {
       background: none;
       border: none;
-      font-size: 1.5rem;
-      margin-right: 10px;
+      font-size: 1.4rem;
       cursor: pointer;
-      color: #ffffff;
+      color: #d94d7b;
       transition: transform 0.3s ease, color 0.3s ease;
     }
 
-    .message-card .actions button:hover {
+    .actions button:hover {
       transform: scale(1.2);
     }
 
-    .message-card .actions .agree-btn:hover {
+    .actions .agree-btn:hover {
       color: #28a745;
     }
 
-    .message-card .actions .disagree-btn:hover {
+    .actions .disagree-btn:hover {
       color: #dc3545;
     }
 
-    .message-card .actions .cancel-btn:hover {
-      color: #d6f0ff; /* Lightened blue on cancel hover */
+    .actions .cancel-btn:hover {
+      color: #999999;
     }
 
     .no-messages {
       text-align: center;
       font-size: 1.2rem;
-      color: #00A9FF; /* Blue message when no items */
+      color: #d94d7b;
       margin-top: 50px;
     }
-
   </style>
 </head>
 <body>
@@ -137,7 +139,23 @@
 
   <!-- Messages Container -->
   <div class="container">
-    <div id="messagesContainer" class="row justify-content-end"></div>
+    <div id="messagesContainer" class="row justify-content-end">
+      <!-- Example Message Card -->
+      <!-- <div class="col-12">
+        <div class="message-card">
+          <div class="card-header">From: Alice</div>
+          <div class="card-body">
+            <p>Hey! Are you coming to the meeting later?</p>
+            <div class="timestamp">May 2, 2025 10:15 AM</div>
+          </div> -->
+          <!-- <div class="actions">
+            <button class="agree-btn" title="Agree"><i class="bi bi-hand-thumbs-up"></i></button>
+            <button class="disagree-btn" title="Disagree"><i class="bi bi-hand-thumbs-down"></i></button>
+            <button class="cancel-btn" title="Delete"><i class="bi bi-x-circle"></i></button>
+          </div> -->
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Bootstrap JS -->
@@ -181,76 +199,58 @@
 
         messages.forEach(message => {
 
-          if (message.get('noticeType') == 'request') {
+          if (message.get('noticeType') === 'request') {
             const data = message.toJSON();
             const messageCard = document.createElement('div');
-            messageCard.classList.add('col-md-6');
+            messageCard.classList.add('col-12');
             messageCard.innerHTML = `
-              <div class="card bg-light border-0 shadow-sm rounded p-3 mb-3" id="message-${data.objectId}">
-                  <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-center">
-                          <h6 class="mb-1 text-dark">
-                              <i class="fa-solid fa-user text-primary"></i> <b>${data.fromUserName}</b>
-                          </h6>
-                          <small class="text-muted">${new Date(data.createdAt).toLocaleString()}</small>
-                      </div>
-                      <p class="text-muted small">UserID: <span class="text-dark">${data.fromUserId}</span></p>
-                      <hr class="my-2">
-                      <p class="mb-1 text-dark">
-                          <i class="fa-solid fa-user-plus text-info"></i> <b>请求加入群组:</b>
-                      </p>
-                      <p class="text-muted small">📌 群组: <b>${data.RoomName}</b></p>
-                      <p class="text-muted small">🔗 Group ID: <span class="text-dark">${data.groupId}</span></p>
-                      <div class="d-flex justify-content-end mt-2">
-                          <button class="btn btn-success btn-sm me-2" onclick="handleAgree('${data.objectId}')">
-                              <i class="fa-solid fa-check"></i> 同意
-                          </button>
-                          <button class="btn btn-outline-danger btn-sm me-2" onclick="updateStatus('${data.objectId}')">
-                              <i class="fa-solid fa-xmark"></i> 拒绝
-                          </button>
-                          <button class="btn btn-secondary btn-sm" onclick="ignoreRequest('${data.objectId}')">
-                              <i class="fa-solid fa-eye-slash"></i> 忽略
-                          </button>
-                      </div>
-                  </div>
+              <div class="message-card" id="message-${data.objectId}">
+                <div class="card-header">From: ${data.fromUserName}</div>
+                <div class="card-body">
+                  <p><strong>请求加入群组:</strong></p>
+                  <p class="text-muted small">📌 群组: <b>${data.RoomName}</b></p>
+                  <p class="text-muted small">🔗 Group ID: <span class="text-dark">${data.groupId}</span></p>
+                  <p class="text-muted small">UserID: <span class="text-dark">${data.fromUserId}</span></p>
+                  <div class="timestamp">${new Date(data.createdAt).toLocaleString()}</div>
+                </div>
+                <div class="actions">
+                  <button class="agree-btn" title="同意" onclick="handleAgree('${data.objectId}')">
+                    <i class="bi bi-hand-thumbs-up"></i>
+                  </button>
+                  <button class="disagree-btn" title="拒绝" onclick="updateStatus('${data.objectId}')">
+                    <i class="bi bi-hand-thumbs-down"></i>
+                  </button>
+                  <button class="cancel-btn" title="忽略" onclick="ignoreRequest('${data.objectId}')">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </div>
               </div>
-          `;
-
-
+            `;
             messagesContainer.appendChild(messageCard);
           }
-          if (message.get('noticeType') == 'like') {
+
+          if (message.get('noticeType') === 'like') {
             const data = message.toJSON();
             const messageCard = document.createElement('div');
-            messageCard.classList.add('col-md-6');
+            messageCard.classList.add('col-12');
             messageCard.innerHTML = `
-              <div class="card bg-white border-0 shadow-sm rounded p-3 mb-3" id="message-${data.objectId}">
-                  <div class="card-body">
-                      <div class="d-flex justify-content-between align-items-center">
-                          <h6 class="mb-1 text-dark">
-                              <i class="fa-solid fa-user text-primary"></i> <b>${data.fromUserName}</b>
-                          </h6>
-                          <small class="text-muted">${new Date(data.createdAt).toLocaleString()}</small>
-                      </div>
-                      <p class="text-muted small"> UserID: <span class="text-dark">${data.fromUserId}</span></p>
-                      <hr class="my-2">
-                      <p class="mb-1 text-dark">
-                          <i class="fa-solid fa-thumbs-up text-success"></i> 该用户点赞了你的 <b>Moment</b>
-                      </p>
-                      <p class="text-muted small">🆔 Moment ID: <span class="text-dark">${data.momentId}</span></p>
-                      <p class="text-muted small">📌 群组: <b>${data.RoomName}</b> (${data.groupId})</p>
-                      <p class="text-muted small">🔗 Group ID: <span class="text-dark">${data.groupId}</span></p>
-                      <div class="d-flex justify-content-end mt-2">
-                          <button class="btn btn-outline-danger btn-sm" onclick="updateStatus('${data.objectId}')">
-                              <i class="fa-solid fa-xmark"></i> 已读
-                          </button>
-                      </div>
-                  </div>
+              <div class="message-card" id="message-${data.objectId}">
+                <div class="card-header">From: ${data.fromUserName}</div>
+                <div class="card-body">
+                  <p><strong>该用户点赞了你的 Moment</strong></p>
+                  <p class="text-muted small">🆔 Moment ID: <span class="text-dark">${data.momentId}</span></p>
+                  <p class="text-muted small">📌 群组: <b>${data.RoomName}</b> (${data.groupId})</p>
+                  <p class="text-muted small">🔗 Group ID: <span class="text-dark">${data.groupId}</span></p>
+                  <p class="text-muted small">UserID: <span class="text-dark">${data.fromUserId}</span></p>
+                  <div class="timestamp">${new Date(data.createdAt).toLocaleString()}</div>
+                </div>
+                <div class="actions">
+                  <button class="cancel-btn" title="标为已读" onclick="updateStatus('${data.objectId}')">
+                    <i class="bi bi-x-circle"></i>
+                  </button>
+                </div>
               </div>
-          `;
-
-
-
+            `;
             messagesContainer.appendChild(messageCard);
           }
           
@@ -280,14 +280,49 @@
           message.set("status", true);
           return message.save();
         }).then(() => {
-          alert('User successfully added to the group.');
+          showPopup("✅ User successfully added to the group!", "success");
           fadeOutMessage(messageId);
         });
       }).catch(error => {
         console.error("Error adding user to the group:", error);
-        alert('Failed to add user to the group. Please try again.');
+        showPopup("❌ Failed to add user to the group. Please try again.", "error");
       });
     }
+
+    function showPopup(message, type) {
+      const popup = document.createElement('div');
+      popup.className = `popup-notification ${type}`;
+      popup.innerHTML = `<div class="popup-content">${message}</div>`;
+
+      document.body.appendChild(popup);
+
+      popup.style.position = 'fixed';
+      popup.style.top = '20px';
+      popup.style.left = '50%';
+      popup.style.transform = 'translateX(-50%)';
+      popup.style.padding = '12px 24px';
+      popup.style.borderRadius = '30px';
+      popup.style.fontWeight = '600';
+      popup.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.1)';
+      popup.style.zIndex = '2000';
+      popup.style.transition = 'opacity 0.3s ease';
+
+      // Pastel theme colors
+      if (type === 'success') {
+        popup.style.backgroundColor = '#eafaf1';
+        popup.style.color = '#27ae60';
+      } else if (type === 'error') {
+        popup.style.backgroundColor = '#ffeef2';
+        popup.style.color = '#d94d7b';
+      }
+
+      setTimeout(() => {
+        popup.style.opacity = '0';
+        setTimeout(() => popup.remove(), 500);
+      }, 3000);
+    }
+
+
 
     function updateStatus(messageId) {
       const query = new AV.Query("userNotice");

@@ -1,50 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chat with Date and Timestamp</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Chat</title>
   <!-- Bootstrap CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" />
   <!-- Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/leancloud-storage@4.12.0/dist/av-min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+
+
   <style>
     body {
-      background-color: #ffffff;
-      font-family: 'Roboto', sans-serif;
+      background-color: #ffeef2;
+      font-family: 'Quicksand', sans-serif;
       color: #333333;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
 
     .chat-card {
-      margin-top: 50px;
-      border: none;
-      border-radius: 15px;
+      width: 100%;
+      max-width: 500px;
+      background-color: #fff;
+      border-radius: 30px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-      background-color: #ffffff;
+      overflow: hidden;
     }
 
     .card-header {
-      background-color: #00A9FF; /* Deeper Blue */
+      background-color: #d94d7b;
       color: #ffffff;
       font-size: 1.4rem;
       font-weight: bold;
       text-align: center;
-      border-top-left-radius: 15px;
-      border-top-right-radius: 15px;
-      padding: 15px;
+      padding: 20px 30px;
+      position: relative;
+      border-top-left-radius: 30px;
+      border-top-right-radius: 30px;
     }
 
     .chat-window {
       height: 400px;
       overflow-y: auto;
-      background-color: #ffffff;
-      padding: 15px;
-      margin-bottom: 10px;
+      padding: 20px;
+      background-color: #fff;
     }
 
     .chat-message {
@@ -62,37 +72,28 @@
     }
 
     .chat-message .sender {
-      font-weight: bold;
-      font-size: 1rem;
-      color: #777777;
+      font-weight: 600;
+      color: #999;
       margin-bottom: 5px;
     }
 
     .chat-message .message-bubble {
-      background-color: #00A9FF; /* Deeper Blue for user messages */
-      color: #ffffff;
+      background-color: #d94d7b;
+      color: #fff;
       padding: 12px 18px;
-      border-radius: 20px;
+      border-radius: 30px;
       max-width: 70%;
-      text-align: left;
     }
 
     .chat-message.them .message-bubble {
-      background-color: #e1f4ff; /* Light pastel blue for others */
-      color: #333333;
-      border: 1px solid #00A9FF; /* Subtle border match */
+      background-color: #fbe6ec;
+      color: #333;
+      border: 1px solid #d94d7b;
     }
 
     .chat-message .timestamp {
       font-size: 0.8rem;
-      color: #999999;
-      margin-top: 5px;
-      text-align: right;
-    }
-
-    .chat-message .date {
-      font-size: 0.9rem;
-      color: #888888;
+      color: #aaa;
       margin-top: 5px;
       text-align: right;
     }
@@ -100,30 +101,28 @@
     .chat-footer {
       display: flex;
       gap: 10px;
-      padding-top: 10px;
+      padding: 20px;
     }
 
     .chat-footer input {
       border-radius: 30px;
-      padding: 12px 20px;
+      padding: 12px 16px;
       border: 1px solid #cccccc;
-      font-size: 1rem;
-      background-color: #ffffff;
-      color: #333333;
+      flex: 1;
     }
 
     .chat-footer button {
       border-radius: 30px;
       padding: 12px 20px;
-      font-size: 1.1rem;
-      background-color: #00A9FF; /* Deeper Blue */
-      color: #ffffff;
+      font-size: 1rem;
+      background-color: #d94d7b;
+      color: white;
       border: none;
       transition: background-color 0.3s ease;
     }
 
     .chat-footer button:hover {
-      background-color: #008fd4; /* Slightly darker blue on hover */
+      background-color: #bf3b68;
     }
 
     .profile-img {
@@ -133,27 +132,32 @@
       margin-right: 10px;
     }
 
-    .chat-header .name {
-      font-weight: bold;
-      color: #ffffff;
-      font-size: 1.2rem;
-    }
-
-    .chat-header .status {
-      font-size: 0.9rem;
-      color: #d6f0ff; /* Very light blue for status */
-    }
-
     .card-header i {
-      color: #ffffff;
-      transition: color 0.3s ease;
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.5rem;
+      color: white;
+      cursor: pointer;
     }
 
-    .card-header i:hover {
-      color: #F6D1B3; /* Soft Peach */
+    .fa-chevron-left {
+      left: 15px;
     }
 
-    /* Modal Background */
+    .fa-camera {
+      right: 85px;
+    }
+
+    .fa-user-friends {
+      right: 50px;
+    }
+
+    .fa-layer-group {
+      right: 15px;
+    }
+
+    /* Modals */
     .modal {
       display: none;
       position: fixed;
@@ -166,17 +170,57 @@
       background-color: rgba(0, 0, 0, 0.6);
     }
 
-    /* Modal Content */
     .modal-content {
-      background-color: #ffffff;
+      background-color: #fff;
       margin: 15% auto;
       padding: 20px;
-      border-radius: 15px;
+      border-radius: 30px;
       width: 80%;
       max-width: 320px;
       box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
       position: relative;
       animation: slideDown 0.3s ease;
+    }
+
+    .modal-content .close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5rem;
+      color: #d94d7b;
+      cursor: pointer;
+    }
+
+    .modal-title {
+      text-align: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #d94d7b;
+      margin-bottom: 15px;
+    }
+
+    .group-list {
+      list-style-type: none;
+      padding: 0;
+      margin: 0;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+
+    .group-list li {
+      padding: 10px;
+      border: 1px solid #e0e0e0;
+      border-radius: 20px;
+      margin-bottom: 10px;
+      background-color: #f9f9f9;
+      color: #555555;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .group-list li:hover {
+      background-color: #fce5ed;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      cursor: pointer;
     }
 
     @keyframes slideDown {
@@ -190,88 +234,35 @@
       }
     }
 
-    .modal-content .close {
-      position: absolute;
-      top: 10px;
-      right: 15px;
-      color: #00A9FF;
-      font-size: 1.5rem;
-      font-weight: bold;
-      cursor: pointer;
+    .dropdown {
+      padding-right: 28px;
     }
 
-    .modal-content .close:hover {
-      color: #ff0000;
+    .dropdown-menu {
+      font-family: 'Quicksand', sans-serif;
+      font-size: 0.95rem;
+      background-color: #ffffff;
+      border-radius: 20px;
+      padding: 10px 0;
+      border: 1px solid #f0f0f0;
     }
 
-    .modal-title {
-      text-align: center;
-      font-size: 1.2rem;
-      font-weight: bold;
-      color: #00A9FF;
-      margin-bottom: 15px;
-    }
-
-    /* Group List */
-    .group-list {
-      list-style-type: none;
-      padding: 0;
-      margin: 0;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-
-    .group-list li {
-      padding: 10px;
-      border: 1px solid #e0e0e0;
+    .dropdown-item {
+      padding: 10px 20px;
       border-radius: 10px;
-      margin-bottom: 10px;
-      background-color: #f9f9f9;
-      color: #555555;
-      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+      transition: background-color 0.2s;
     }
 
-    .group-list li:hover {
-      background-color: #e6f7ff;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      cursor: pointer;
-      transform: translateY(-2px);
+    .dropdown-item:hover {
+      background-color: #fbe6ec;
+      color: #d94d7b;
     }
-
-    .fade-out {
-      animation: fadeOut 0.8s ease-in-out forwards;
-    }
-
-    @keyframes fadeOut {
-      0% {
-        opacity: 1;
-      }
-      50% {
-        opacity: 0.5;
-        background-color: #e0f4ff;
-      }
-      100% {
-        opacity: 0;
-        background-color: #ffffff;
-      }
-    }
-
-    .fas.fa-times-circle:hover {
-      color: #ff1a1a;
-      transform: scale(1.2);
-      transition: color 0.3s ease, transform 0.3s ease;
-    }
-
-
 
   </style>
 </head>
 
-
-
-
 <body>
-  <!-- Modal -->
+  <!-- Modals -->
   <div id="groupModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeModal()">&times;</span>
@@ -280,8 +271,6 @@
     </div>
   </div>
 
-<!-- Room Members Modal -->
-<!-- Room Members Modal -->
   <div id="roomMembersModal" class="modal">
     <div class="modal-content">
       <span class="close" onclick="closeRoomMembersModal()">&times;</span>
@@ -290,50 +279,39 @@
     </div>
   </div>
 
-
+  <!-- Main Chat Card -->
   <div class="container">
-    <div class="row justify-content-center">
-      <div class="col-md-6">
-        <div class="card chat-card">
-
-            <div class="card-header d-flex align-items-center" style="position: relative;">
-
-              <i class="fa-solid fa-chevron-left" 
-             style="cursor: pointer; font-size: 1.5rem; margin-right: 10px;" 
-             onclick="goToHomePage()" 
-             title="Back to Home"></i>
-              <div class="d-flex align-items-center">
-                <img src="images/chatLogo.jpg" alt="Profile" class="profile-img"> <!-- Profile image -->
-                <div class="name" id="groupName">Group Chat</div>
-              </div>
-              <div id="roomHostIcon" style="display: none;">
-                <i class="fas fa-user-friends" 
-                   style="cursor: pointer; font-size: 1.5rem; position: absolute; right: 50px; top: 50%; transform: translateY(-50%);"
-                   onclick="showRoomMembers()"
-                   title="Show Room Members"></i>
-              </div>
-
-              <i class="fas fa-solid fa-layer-group"
-                 style="cursor: pointer; font-size: 1.5rem; position: absolute; right: 15px; top: 50%; transform: translateY(-50%);" 
-                 onclick="showGroups()" 
-                 title="Other Groups"></i>
-
-               <i class="fas fa-camera" style="cursor: pointer; font-size: 1.5rem; position: absolute; right: 95px; top: 50%; transform: translateY(-50%);" 
-                 onclick="goToMomentsPage()" 
-                 title="Go to Moments Page"></i>
-            </div>
-
-          <div class="card-body">
-            <!-- Chat Window -->
-            <div class="chat-window" id="chatWindow">
-              <!-- Chat messages will appear here -->
-            </div>
-            <!-- Input Section -->
-            <div class="chat-footer">
-              <input type="text" id="messageInput" class="form-control" placeholder="Type a message...">
-              <button class="btn" id="sendMessage" onclick="sending()">Send</button>
-            </div>
+    <div class="chat-card">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        
+        <i class="fa-solid fa-chevron-left" onclick="goToHomePage()" title="Back"></i>
+        
+        <div class="d-flex align-items-center mx-auto">
+          <img src="images/chatLogo.jpg" class="profile-img" alt="Profile">
+          <div class="ms-2">
+            <div class="fw-bold text-white" id="groupName">Group Chat</div>
           </div>
+        </div>
+        <!-- <i class="fas fa-camera" onclick="goToMomentsPage()" title="Moments"></i>
+        <i class="fas fa-user-friends" onclick="showRoomMembers()" title="Members" id="roomHostIcon" style="display:none;"></i>
+        <i class="fas fa-layer-group" onclick="showGroups()" title="Groups"></i> -->
+        <div class="dropdown">
+          <i class="fas fa-solid fa-circle-chevron-down" id="chatDropdown" data-bs-toggle="dropdown" role="button" title="More"></i>
+          <ul class="dropdown-menu dropdown-menu-end rounded-4 shadow-sm" aria-labelledby="chatDropdown">
+            <li><a class="dropdown-item" href="#" onclick="goToMomentsPage()">Moments</a></li>
+            <li><a class="dropdown-item" href="#" onclick="showRoomMembers()">Room Members</a></li>
+            <li><a class="dropdown-item" href="#" onclick="showGroups()">Groups</a></li>
+          </ul>
+        </div>
+
+      </div>
+      <div class="card-body">
+        <div class="chat-window" id="chatWindow">
+          <!-- Messages go here -->
+        </div>
+        <div class="chat-footer">
+          <input type="text" id="messageInput" class="form-control" placeholder="Type a message...">
+          <button class="btn" onclick="sending()">Send</button>
         </div>
       </div>
     </div>
@@ -409,20 +387,10 @@
   }
 
 
-  // var view = function () {
-  //   const query = new AV.Query("chatMessage");
-  //   query.equalTo("groupId", groupId);
-
-  //   query.find().then(res => {
-  //       console.log(res);
-  //       displayMessages(res, groupId); // Display fetched messages
-  //   }).catch(err => {
-  //       console.error("Error fetching messages:", err);
-  //   });
-  // };
-
 
   function refreshChatWindow() {
+
+    console.log(AV.User.current())
     const query = new AV.Query("chatMessage");
     query.equalTo("groupId", groupId);
 
@@ -450,9 +418,16 @@
             } else {
                 // Create a new entry
                 const newCheckTime = new AV.Object("groupCheckTime");
+
                 newCheckTime.set("lastMessageId", lastMessage.id);
                 newCheckTime.set("groupId", groupId);
                 newCheckTime.set("userId", userId);
+
+                const acl = new AV.ACL();
+                acl.setReadAccess(AV.User.current(), true);
+                acl.setWriteAccess(AV.User.current(), true);
+
+                newCheckTime.setACL(acl)
 
                 newCheckTime.save().then(() => {
                     console.log("Created new check time entry.");
@@ -550,8 +525,10 @@
   function checkRoomHost() {
     const query = new AV.Query('chatRoom'); // LeanCloud query for 'chatRoom' class
     query.get(groupId).then((room) => {
+
       if (room.get('RoomHost') === userId) { // Check if current user is the host
-        document.getElementById('roomHostIcon').style.display = 'block'; // Show the icon
+        // document.getElementById('roomHostIcon').style.display = 'block'; // Show the icon
+
       }
     }).catch((err) => {
       console.error('Error checking room host:', err);
@@ -595,9 +572,6 @@
   // Function to display messages and update group check time
   function displayMessages(messages, groupId) {
 
-    console.log("------");
-    console.log(messages);
-    console.log(groupId);
     const query = new AV.Query('chatMessage'); // LeanCloud query for 'chatMessage' class
     query.equalTo('groupId', groupId); // Filter by groupId
 
@@ -740,63 +714,206 @@
 
 
   function displayRoomMembers(members) {
-    const membersList = document.getElementById("roomMembersList");
-    membersList.innerHTML = ""; // Clear existing members
 
-    members.forEach((member) => {
+    const query = new AV.Query('chatRoom'); // LeanCloud query for 'chatRoom' class
+    query.get(groupId).then((room) => {
 
-      console.log("-----");
-      console.log(member);
-      const listItem = document.createElement("li");
-      listItem.style.display = "flex";
-      listItem.style.justifyContent = "space-between";
-      listItem.style.alignItems = "center";
-      listItem.style.padding = "5px 10px";
-      listItem.style.border = "1px solid #e0e0e0";
-      listItem.style.borderRadius = "10px";
-      listItem.style.marginBottom = "5px";
-      listItem.style.backgroundColor = "#f9f9f9";
+      console.log(room);
 
-      // Member name
-      const nameSpan = document.createElement("span");
-      nameSpan.textContent = member.get("username");
-      nameSpan.style.flexGrow = "1";
-      nameSpan.style.fontSize = "1rem";
-      nameSpan.style.color = "#333";
+      const membersList = document.getElementById("roomMembersList");
+      membersList.innerHTML = ""; // Clear existing members
 
-      // Remove icon
-      const removeIcon = document.createElement("i");
-      removeIcon.className = "fas fa-times-circle";
-      removeIcon.style.cursor = "pointer";
-      removeIcon.style.color = "#ff4d4d";
-      removeIcon.style.fontSize = "1.2rem";
-      removeIcon.style.marginLeft = "10px";
-      removeIcon.title = `Remove ${member.username}`;
-      removeIcon.onclick = () => removeMember(member.objectId);
+      members.forEach((member) => {
 
-      listItem.appendChild(nameSpan);
-      listItem.appendChild(removeIcon);
-      membersList.appendChild(listItem);
+ 
+        const listItem = document.createElement("li");
+        listItem.style.display = "flex";
+        listItem.style.justifyContent = "space-between";
+        listItem.style.alignItems = "center";
+        listItem.style.padding = "5px 10px";
+        listItem.style.border = "1px solid #e0e0e0";
+        listItem.style.borderRadius = "10px";
+        listItem.style.marginBottom = "5px";
+        listItem.style.backgroundColor = "#f9f9f9";
+
+        // Member name
+        const nameSpan = document.createElement("span");
+        nameSpan.textContent = member.get("username");
+        nameSpan.style.flexGrow = "1";
+        nameSpan.style.fontSize = "1rem";
+        nameSpan.style.color = "#333";
+
+        listItem.appendChild(nameSpan);
+
+        if (room.get('RoomHost') === userId) { // Check if current user is the host
+          // Remove icon
+          const removeIcon = document.createElement("i");
+          removeIcon.className = "fas fa-times-circle";
+          removeIcon.style.cursor = "pointer";
+          removeIcon.style.color = "#ff4d4d";
+          removeIcon.style.fontSize = "1.2rem";
+          removeIcon.style.marginLeft = "10px";
+          removeIcon.title = `Remove ${member.username}`;
+          removeIcon.onclick = () => removeMember(member.id);
+
+          
+          listItem.appendChild(removeIcon);
+            
+        }
+
+        membersList.appendChild(listItem);
+
+      });
+
+      
+    }).catch((err) => {
+      console.error('Error checking room host:', err);
     });
+
+   
   }
 
 
   // Function to remove a member from the chat room
   function removeMember(memberId) {
-    if (!confirm("Are you sure you want to remove this member?")) return;
+    showConfirmation("Are you sure you want to remove this member?", () => {
+      const query = new AV.Query('chatRoom'); // LeanCloud query for 'chatRoom' class
+      query.get(groupId).then((room) => {
+        const updatedMembers = room.get('RoomMember').filter((id) => id !== memberId); 
+        console.log(room.get('RoomMember'))
+        console.log(memberId);
+        console.log(room.get('RoomMember').filter((id) => id !== memberId))
+        console.log('######')
 
-    const query = new AV.Query('chatRoom'); // LeanCloud query for 'chatRoom' class
-    query.get(groupId).then((room) => {
-      const updatedMembers = room.get('RoomMember').filter((id) => id !== memberId); // Remove the member from RoomMember
-      room.set('RoomMember', updatedMembers); // Set the updated member list
+        // Remove the member from RoomMember
+        room.set('RoomMember', updatedMembers); // Set the updated member list
+        console.log(updatedMembers);
 
-      return room.save(); // Save the updated room object
-    }).then(() => {
-      alert("Member removed successfully.");
-      showRoomMembers(); // Refresh the list of members
-    }).catch((err) => {
-      console.error('Error removing member:', err);
+        return room.save(); // Save the updated room object
+      }).then(() => {
+        showStatusMessage("✅ Member removed successfully.", "success"); // Show success message
+        showRoomMembers(); // Refresh the list of members
+      }).catch((err) => {
+        console.error('Error removing member:', err);
+        showStatusMessage("❌ Failed to remove member. Please try again.", "error"); // Show error message
+      });
     });
+  }
+
+
+
+
+  function showStatusMessage(message, type) {
+    const statusDiv = document.createElement('div');
+    statusDiv.className = 'status-message';
+    statusDiv.innerText = message;
+    statusDiv.style.position = 'fixed';
+    statusDiv.style.top = '20px';
+    statusDiv.style.left = '50%';
+    statusDiv.style.transform = 'translateX(-50%)';
+    statusDiv.style.padding = '12px 24px';
+    statusDiv.style.borderRadius = '25px';
+    statusDiv.style.textAlign = 'center';
+    statusDiv.style.fontWeight = '600';
+    statusDiv.style.zIndex = '2000';
+    statusDiv.style.transition = 'opacity 0.3s ease';
+
+    // Set color theme based on the message type
+    if (type === 'success') {
+      statusDiv.style.backgroundColor = '#eafaf1';
+      statusDiv.style.color = '#27ae60';
+    } else if (type === 'error') {
+      statusDiv.style.backgroundColor = '#ffeef2';
+      statusDiv.style.color = '#d94d7b';
+    }
+
+    // Append the message to the body
+    document.body.appendChild(statusDiv);
+
+    // Auto-hide the message after 3 seconds
+    setTimeout(() => {
+      statusDiv.style.opacity = '0';
+      setTimeout(() => statusDiv.remove(), 500);
+    }, 3000);
+  }
+
+  function showConfirmation(message, onConfirm) {
+  // Create the modal container
+    const confirmationDiv = document.createElement('div');
+    confirmationDiv.className = 'confirmation-popup';
+    
+    // Modal structure with information icon
+    confirmationDiv.innerHTML = `
+      <div class="confirmation-header">
+        <i class="bi bi-info-circle-fill" style="font-size: 24px;font-family: 'Quicksand', sans-serif; color: #d94d7b;"></i>
+      </div>
+      <div class="confirmation-content">
+        <p style="font-family: 'Quicksand', sans-serif; color: #333;">${message}</p>
+        <div class="confirmation-buttons">
+          <button id="confirmYes" class="btn btn-sm btn-outline-success" style="font-family: 'Quicksand', sans-serif">Yes</button>
+          <button id="confirmNo" class="btn btn-sm btn-outline-danger" style="font-family: 'Quicksand', sans-serif">No</button>
+        </div>
+      </div>
+    `;
+
+    // Style the confirmation popup with pastel pink theme
+    confirmationDiv.style.position = 'fixed';
+    confirmationDiv.style.top = '50%';
+    confirmationDiv.style.left = '50%';
+    confirmationDiv.style.transform = 'translate(-50%, -50%)';
+    confirmationDiv.style.backgroundColor = '#ffffff'; // Pastel pink
+    confirmationDiv.style.color = '#d94d7b'; // Soft pink text
+    confirmationDiv.style.padding = '20px 30px';
+    confirmationDiv.style.borderRadius = '30px';
+    confirmationDiv.style.fontFamily = 'Arial, sans-serif'; // Same font as the page
+    confirmationDiv.style.fontWeight = '600';
+    confirmationDiv.style.boxShadow = '0 6px 12px rgba(0, 0, 0, 0.1)';
+    confirmationDiv.style.zIndex = '2000';
+    confirmationDiv.style.transition = 'opacity 0.3s ease';
+
+    // Style the header (icon)
+    const header = confirmationDiv.querySelector('.confirmation-header');
+    header.style.textAlign = 'center';
+    header.style.marginBottom = '15px';
+
+    // Style the content (text and buttons)
+    const content = confirmationDiv.querySelector('.confirmation-content');
+    content.style.textAlign = 'center';
+
+    // Style the buttons inside the confirmation modal
+    const yesButton = confirmationDiv.querySelector('#confirmYes');
+    const noButton = confirmationDiv.querySelector('#confirmNo');
+    
+    yesButton.style.backgroundColor = '#27ae60'; 
+    yesButton.style.color = '#fff';
+    yesButton.style.border = 'none';
+    yesButton.style.padding = '10px 20px';
+    yesButton.style.borderRadius = '10px';
+    yesButton.style.cursor = 'pointer';
+    yesButton.style.fontSize = '16px';
+    
+    noButton.style.backgroundColor = '#d94d7b'; 
+    noButton.style.color = '#fff';
+    noButton.style.border = 'none';
+    noButton.style.padding = '10px 20px';
+    noButton.style.borderRadius = '10px';
+    noButton.style.cursor = 'pointer';
+    noButton.style.fontSize = '16px';
+
+    // Append to the body
+    document.body.appendChild(confirmationDiv);
+
+    // Add event listeners for Yes and No buttons
+    yesButton.onclick = () => {
+      onConfirm(); // Execute the confirmation function passed as a callback
+      confirmationDiv.style.opacity = '0'; // Fade out the modal
+      setTimeout(() => confirmationDiv.remove(), 300); // Remove modal after fade
+    };
+
+    noButton.onclick = () => {
+      confirmationDiv.style.opacity = '0'; // Fade out the modal
+      setTimeout(() => confirmationDiv.remove(), 300); // Remove modal after fade
+    };
   }
 
 
